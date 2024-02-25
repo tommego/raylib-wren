@@ -1,0 +1,3 @@
+class MediaPlayer {
+    construct new() {}
+}
