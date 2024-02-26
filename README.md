@@ -150,27 +150,27 @@ Raylib.CloseWindow() // Close window and OpenGL context
 
 core_2d_camera_mouse
 
-![core_2d_camera_mouse.zoom](https://github.com/tommego/raylib-wren/assets/9795054/a7101feb-cfd8-482b-b79c-3a6373cad84c)
+![core_2d_camera_mouse.zoom](screenshots/core_2d_camera_mouse_zoom.png)
 
 core_2d_camera_platformer
 
-![core_2d_camera_platformer](https://github.com/tommego/raylib-wren/assets/9795054/8e835ab4-e78e-4b5f-80e9-9dbbf11a9e7b)
+![core_2d_camera_platformer](screenshots/core_2d_camera_platform.png)
 
 raygui
 
-![raygui](https://github.com/tommego/raylib-wren/assets/9795054/cb76faf7-4c65-4eda-a19b-b2e9aa3f6322)
+![raygui](screenshots/raygui.png)
 
 node editor
 
-![image](https://github.com/tommego/raylib-wren/assets/9795054/c0ea657d-64a1-45ee-873b-7910236c1fbf)
+![image](screenshots/node_editor.png)
 
-cico enginetest 
+cico gui 
 
-![image](https://github.com/tommego/raylib-wren/assets/9795054/f7689133-692f-42a3-8b4b-0398404c27fe)
+![image](screenshots/cico_gui_engine.png)
 
 
 cico project/wgc
 
-![image](https://github.com/tommego/raylib-wren/assets/9795054/cc4c33a8-3aa6-4505-af11-5bbcdffc1c5b)
+![image](screenshots/wgc.png)
 
 

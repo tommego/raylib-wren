@@ -15,6 +15,7 @@ import "cico/engine/sg2d/control/swipeview" for SgSwipeView
 import "cico/engine/sg2d/control/combobox" for SgComboBox
 import "cico/engine/sg2d/control/spinbox" for SgSpinBox
 import "cico/engine/sg2d/control/textfield" for SgTextField
+import "cico/engine/sg2d/window" for SgWindow
 
 class cico {
     static init() {
