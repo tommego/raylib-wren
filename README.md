@@ -69,82 +69,65 @@ I love wren language, it is very handy for working on  many kinds of projects.
 ### Raylib API Basic Examples
 
 ``` wren
-import "cico.raylib" for Raylib,Camera2D,Vector2,Color
+import "cico.raylib" for Raylib
 
-// Initialization
-//--------------------------------------------------------------------------------------
-var screenWidth = 800
-var screenHeight = 450
+Raylib.InitWindow(800, 450, "raylib [core] example - basic window")
 
-Raylib.InitWindow(screenWidth, screenHeight, "raylib [core] example - 2d camera mouse zoom")
-
-var camera = Camera2D.new() 
-camera.zoom = 1
-var target = Vector2.new()
-
-Raylib.SetTargetFPS(120)
-
-var delta = Vector2.new()
-var mpos = Vector2.new()
 while(!Raylib.WindowShouldClose()) {
-    // Update
-    //----------------------------------------------------------------------------------
-    // Translate based on mouse right click
-    if(Raylib.IsMouseButtonDown(Raylib.MOUSE_BUTTON_RIGHT)) {
-        Raylib.GetMouseDelta(delta)
-        
-        delta = Vector2.Vector2Scale(delta, -1.0 / camera.zoom)
-        target = Vector2.Vector2Add(target, delta)
-        camera.target = target
-    }
-
-    // Zoom based on mouse wheel
-    var wheel = Raylib.GetMouseWheelMove() 
-    if(wheel != 0) {
-        // Get the world point that is under the mouse
-        Raylib.GetMousePosition(mpos)
-        var mouseWorldPos = Vector2.new()
-        Raylib.GetScreenToWorld2D(mouseWorldPos, mpos, camera)
-
-        // Set the offset to where the mouse is
-        camera.offset = mpos 
-
-        // Set the target to match, so that the camera maps the world space point 
-        // under the cursor to the screen space point under the cursor at any zoom
-        camera.target = mouseWorldPos
-        // Zoom increment
-        var zoomIncrement = 0.125
-        camera.zoom = camera.zoom + (wheel * zoomIncrement)
-        if(camera.zoom < zoomIncrement) {
-            camera.zoom = zoomIncrement
-        }
-    }
-
-    //----------------------------------------------------------------------------------
-
-    // Draw
-    //----------------------------------------------------------------------------------
     Raylib.BeginDrawing() 
-        Raylib.ClearBackground(Raylib.BLACK)
-        
-        Raylib.BeginMode2D(camera)
-
-            // Draw a reference circle
-            Raylib.DrawCircle(100, 100, 50, Raylib.YELLOW)
-        
-        Raylib.EndMode2D()
-
-        Raylib.DrawText("Mouse right button drag to move, mouse wheel to zoom  fps: %(Raylib.GetFPS())", 10, 10, 20, Raylib.WHITE)
-    
+      Raylib.ClearBackground(Raylib.RAYWHITE)
+      Raylib.DrawText("Congrats! You created your first window!", 190, 200, 20, Raylib.LIGHTGRAY)
     Raylib.EndDrawing()
 }
 
-// De-Initialization
-//--------------------------------------------------------------------------------------
-Raylib.CloseWindow() // Close window and OpenGL context
-//--------------------------------------------------------------------------------------
-
+Raylib.CloseWindow()
 ```
+
+### Using cico api
+#### Basic
+``` wren
+import "cico/engine/app" for App 
+import "cico.raylib" for Raylib,Color 
+import "cico/engine/sg2d/window" for SgWindow
+import "cico/engine/sg2d/rectangle" for SgRectangle
+class cico {
+    static init() {
+        // cico engine initialize
+        // create cico app 
+        __app = App.new()
+        // create a window 
+        __mainWIndow = SgWindow.new("Engine test")
+        // create a rectangle, an define it's shape with dict(wren Map) 
+        var rectangle = SgRectangle.new(__mainWIndow, {
+            "width": 100, 
+            "height": 100,
+            "x": 300,
+            "y": 200,
+            "color": Color.fromString("#33aaff")
+        })
+    }
+
+    static eventLoop() {
+        // cico engine loop 
+        var windowClosed = Raylib.WindowShouldClose()
+        __app.loop()
+        return windowClosed ? 1 : 0
+    }
+    static exit() {
+        // cico engine exit
+        __app.exit()
+    }
+}
+```
+![cico_basic_example](screenshots//cico_basic_example.png)
+
+#### For advance usage
+you can run dist/example/gui/cico_engine_test.wren in the project
+``` shell
+cd dist
+./cico_app.exe example/gui/cico_engine_test.wren 
+```
+![image](screenshots/cico_gui_engine.png)
 
 ### Gallery
 
