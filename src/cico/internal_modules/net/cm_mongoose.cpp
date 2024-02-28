@@ -94,59 +94,129 @@ void init_mg_mgr() {
     g_mg_thread = std::thread(mg_poll_event);
 }
 
-void cb_http_client(mg_connection* c, int ev, void* ev_data) {
-    if(ev == MG_EV_OPEN) {
-
+void cb_mg_event(mg_connection* c, int ev, void* ev_data) {
+    switch(ev){
+    case MG_EV_ERROR: {
+        break;
     }
-}
-
-void cb_http_server(mg_connection* c, int ev, void* ev_data) {
-  if (ev == MG_EV_HTTP_MSG) {
-    struct mg_http_message *hm = (mg_http_message*)ev_data, tmp = {0};
-    struct mg_str unknown = mg_str_n("?", 1), *cl;
-    struct mg_http_serve_opts opts = {0};
-    opts.root_dir = s_root_dir;
-    opts.ssi_pattern = s_ssi_pattern;
-    auto info = (WrenMgEvent*)c->fn_data;
-    g_mgEventMutx.lock();
-    WrenMgEvent* mev = new WrenMgEvent;
-    mev->cb_handle = info->cb_handle;
-    mev->conn_handle = info->conn_handle;
-    mev->msg_handle = info->msg_handle;
-    mev->http_msg = info->http_msg;
-    mev->vm = info->vm;
-    mev->ev = ev;
-    mev->conn_rapper = info->conn_rapper;
-    mev->conn_rapper->pandingConnection = c;
-    mg_http_message_cpy(mev->http_msg, hm);
-    g_mgEvents.push_back(mev);
-    g_mgEventMutx.unlock();
-    mg_http_parse((char *) c->send.buf, c->send.len, &tmp);
-    cl = mg_http_get_header(&tmp, "Content-Length");
-    LOG_F(INFO, "[Mongosse] http server event, connection: %p", c);
-    if (cl == NULL) cl = &unknown;
-  }
-}
-
-void cb_mg_io(mg_connection* c, int ev, void* ev_data) {
-
+    case MG_EV_OPEN: {
+        break;
+    }
+    case MG_EV_POLL: {
+        break;
+    }
+    case MG_EV_RESOLVE: {
+        break;
+    }
+    case MG_EV_CONNECT: {
+        break;
+    }
+    case MG_EV_ACCEPT: {
+        break;
+    }
+    case MG_EV_TLS_HS: {
+        break;
+    }
+    case MG_EV_READ: {
+        break;
+    }
+    case MG_EV_WRITE: {
+        break;
+    }
+    case MG_EV_CLOSE: {
+        break;
+    }
+    case MG_EV_HTTP_MSG: {
+        struct mg_http_message *hm = (mg_http_message*)ev_data, tmp = {0};
+        struct mg_str unknown = mg_str_n("?", 1), *cl;
+        struct mg_http_serve_opts opts = {0};
+        opts.root_dir = s_root_dir;
+        opts.ssi_pattern = s_ssi_pattern;
+        auto info = (WrenMgEvent*)c->fn_data;
+        g_mgEventMutx.lock();
+        WrenMgEvent* mev = new WrenMgEvent;
+        mev->cb_handle = info->cb_handle;
+        mev->conn_handle = info->conn_handle;
+        mev->msg_handle = info->msg_handle;
+        mev->http_msg = info->http_msg;
+        mev->vm = info->vm;
+        mev->ev = ev;
+        mev->conn_rapper = info->conn_rapper;
+        mev->conn_rapper->pandingConnection = c;
+        mg_http_message_cpy(mev->http_msg, hm);
+        g_mgEvents.push_back(mev);
+        g_mgEventMutx.unlock();
+        mg_http_parse((char *) c->send.buf, c->send.len, &tmp);
+        cl = mg_http_get_header(&tmp, "Content-Length");
+        LOG_F(INFO, "[Mongosse] http server event, connection: %p", c);
+        if (cl == NULL) cl = &unknown;
+        break;
+    }
+    case MG_EV_WS_OPEN: {
+        break;
+    }
+    case MG_EV_WS_MSG: {
+        break;
+    }
+    case MG_EV_WS_CTL: {
+        break;
+    }
+    case MG_EV_MQTT_CMD: {
+        break;
+    }
+    case MG_EV_MQTT_MSG: {
+        break;
+    }
+    case MG_EV_MQTT_OPEN: {
+        break;
+    }
+    case MG_EV_SNTP_TIME: {
+        break;
+    }
+    case MG_EV_WAKEUP: {
+        break;
+    }
+    case MG_EV_USER: {
+        break;
+    }
+    default: {
+        break;
+    }
+    }
 }
 
 #define CICO_MG_METHOD(name) cico_mg_##name
 
 void cico_mg_listen(WrenVM* vm) { 
-    // WrenMgEvent* info = new WrenMgEvent;
-    // info->conn_handle = wrenGetSlotHandle(vm, 1);
-    // info->msg_handle = wrenGetSlotHandle(vm, 3);
-    // info->cb_handle = wrenGetSlotHandle(vm, 4);
-    // info->vm = vm; 
-    // mg_http_listen(g_mg_mgr_ctx, WSString(2), cb_http_server, info);
+    WrenMgEvent* info = new WrenMgEvent;
+    info->conn_handle = wrenGetSlotHandle(vm, 1);
+    info->msg_handle = wrenGetSlotHandle(vm, 3);
+    info->cb_handle = wrenGetSlotHandle(vm, 4);
+    info->vm = vm; 
+    mg_http_listen(g_mg_mgr_ctx, WSString(2), cb_mg_event, info);
 }
-void cico_mg_connect(WrenVM* vm) { }
+void cico_mg_connect(WrenVM* vm) { 
+    WrenMgEvent* info = new WrenMgEvent;
+    info->conn_handle = wrenGetSlotHandle(vm, 1);
+    info->msg_handle = wrenGetSlotHandle(vm, 3);
+    info->cb_handle = wrenGetSlotHandle(vm, 4);
+    info->vm = vm; 
+    mg_connect(g_mg_mgr_ctx, WSString(2), cb_mg_event, info);
+}
 void cico_mg_wrapfd(WrenVM* vm) { }
-void cico_mg_send(WrenVM* vm) { }
-void cico_mg_closeConn(WrenVM* vm) { }
-void cico_mg_httpParse(WrenVM* vm) { }
+void cico_mg_send(WrenVM* vm) { 
+    auto c = WSCls(1, mg_connection_wrapper)->connection;
+    auto buf = WSString(2);
+    auto len = strlen(buf);
+    mg_send(c, (const void*)buf, len * sizeof(char));
+}
+void cico_mg_closeConn(WrenVM* vm) { 
+    auto c = WSCls(1, mg_connection_wrapper)->connection;
+    mg_close_conn(c);
+}
+void cico_mg_httpParse(WrenVM* vm) { 
+    // mg_http_parse()
+}
 void cico_mg_httpWriteChunk(WrenVM* vm) { }
 void cico_mg_HttpDeleteChunk(WrenVM* vm) { }
 void cico_mg_httpListen(WrenVM* vm) { 
@@ -157,7 +227,7 @@ void cico_mg_httpListen(WrenVM* vm) {
     info->conn_rapper = WSCls(1, mg_connection_wrapper);
     info->http_msg = WSCls(3, mg_http_message);
     info->vm = vm; 
-    auto conn = mg_http_listen(g_mg_mgr_ctx, WSString(2), cb_http_server, info);
+    auto conn = mg_http_listen(g_mg_mgr_ctx, WSString(2), cb_mg_event, info);
     info->conn_rapper->connection = conn;
     (WSCls(1, mg_connection_wrapper))->connection = conn;
     LOG_F(INFO, "[Mongoose] listening %p %p %p, connection: %p", info->conn_handle, info->msg_handle, info->cb_handle, conn);
@@ -171,11 +241,31 @@ void cico_mg_httpServeDir(WrenVM* vm) {
     mg_http_serve_dir(c, hm, opts);
 }
 void cico_mg_httpServeFile(WrenVM* vm) { }
-void cico_mg_httpReply(WrenVM* vm) { }
-void cico_mg_httpMatchUri(WrenVM* vm) { }
-void cico_mg_httpUpload(WrenVM* vm) { }
-void cico_mg_httpBauth(WrenVM* vm) { }
-void cico_mg_httpStatus(WrenVM* vm) { }
+void cico_mg_httpReply(WrenVM* vm) { 
+    auto c = WSCls(1, mg_connection_wrapper)->pandingConnection;
+    int code = WSDouble(2);
+    auto header = WSString(3);
+    auto body = WSString(4);
+    mg_http_reply(c, code, header, body);
+}
+void cico_mg_httpMatchUri(WrenVM* vm) { 
+    auto hm = WSCls(1, mg_http_message);
+    auto glob = WSString(2);
+    wrenSetSlotBool(vm, 0, mg_http_match_uri(hm, glob));
+}
+void cico_mg_httpUpload(WrenVM* vm) { 
+    auto c = WSCls(1, mg_connection_wrapper)->pandingConnection;
+    auto hm = WSCls(2, mg_http_message);
+    auto fs = WSCls(3, mg_fs);
+    auto dir = WSString(4);
+    int maxSize = WSDouble(5);
+    wrenSetSlotDouble(vm, 0, mg_http_upload(c, hm, fs, dir, maxSize));
+}
+void cico_mg_httpBauth(WrenVM* vm) { 
+    auto c = WSCls(1, mg_connection_wrapper)->pandingConnection;
+    mg_http_bauth(c, WSString(2), WSString(3));
+}
+void cico_mg_httpStatus(WrenVM* vm) {  wrenSetSlotDouble(vm, 0, mg_http_status(WSCls(1, mg_http_message))); }
 void cico_mg_tlsInit(WrenVM* vm) { }
 void cico_mg_tlsFree(WrenVM* vm) { }
 void cico_mg_tlsSend(WrenVM* vm) { }
@@ -184,8 +274,25 @@ void cico_mg_tlsPending(WrenVM* vm) { }
 void cico_mg_tlsHandShake(WrenVM* vm) { }
 void cico_mg_tlsCtxInit(WrenVM* vm) { }
 void cico_mg_tlsCtxFree(WrenVM* vm) { }
-void cico_mg_ioSend(WrenVM* vm) { }
-void cico_mg_ioRecv(WrenVM* vm) { }
+void cico_mg_ioSend(WrenVM* vm) { 
+    auto c = WSCls(1, mg_connection_wrapper)->pandingConnection;
+    auto buf = WSString(2);
+    auto buf_len = strlen(buf);
+    wrenSetSlotDouble(vm, 0, mg_io_send(c, buf, buf_len));
+}
+void cico_mg_ioRecv(WrenVM* vm) { 
+    char buf[2048];
+    memset((void*)buf, 0, 2048 * sizeof(char));
+    auto c = WSCls(1, mg_connection_wrapper)->pandingConnection;
+    auto len = mg_io_recv(c, (void*)buf, 2048);
+    if(len > 0) {
+        char* readBuf = (char*)malloc(len * sizeof(char));
+        memcpy(readBuf, buf, len * sizeof(char));
+        wrenSetSlotString(vm, 0, readBuf);
+    } else {
+        wrenSetSlotString(vm, 0, "");
+    }
+}
 void cico_mg_arch(WrenVM* vm) { wrenSetSlotDouble(vm, 0, MG_ARCH); }
 void cico_mg_init(WrenVM* vm) { g_mg_exit = false; if(!g_mg_mgr_ctx) { init_mg_mgr(); } }
 void cico_mg_quit(WrenVM* vm) { g_mg_exit = true; }
