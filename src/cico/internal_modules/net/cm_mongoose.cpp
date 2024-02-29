@@ -109,6 +109,23 @@ void cb_mg_event(mg_connection* c, int ev, void* ev_data) {
         break;
     }
     case MG_EV_CONNECT: {
+        LOG_F(INFO, "[Mongoose] on connected: %p %d %p", c, ev, ev_data);
+        struct mg_http_serve_opts opts = {0};
+        opts.root_dir = s_root_dir;
+        opts.ssi_pattern = s_ssi_pattern;
+        auto info = (WrenMgEvent*)c->fn_data;
+        g_mgEventMutx.lock();
+        WrenMgEvent* mev = new WrenMgEvent;
+        mev->cb_handle = info->cb_handle;
+        mev->conn_handle = info->conn_handle;
+        mev->msg_handle = info->msg_handle;
+        mev->http_msg = info->http_msg;
+        mev->vm = info->vm;
+        mev->ev = ev;
+        mev->conn_rapper = info->conn_rapper;
+        mev->conn_rapper->pandingConnection = c;
+        g_mgEvents.push_back(mev);
+        g_mgEventMutx.unlock();
         break;
     }
     case MG_EV_ACCEPT: {
@@ -127,6 +144,7 @@ void cb_mg_event(mg_connection* c, int ev, void* ev_data) {
         break;
     }
     case MG_EV_HTTP_MSG: {
+        LOG_F(INFO, "[Mongoose] on htpp msg: %p %d %p", c, ev, ev_data);
         struct mg_http_message *hm = (mg_http_message*)ev_data, tmp = {0};
         struct mg_str unknown = mg_str_n("?", 1), *cl;
         struct mg_http_serve_opts opts = {0};
@@ -148,7 +166,6 @@ void cb_mg_event(mg_connection* c, int ev, void* ev_data) {
         g_mgEventMutx.unlock();
         mg_http_parse((char *) c->send.buf, c->send.len, &tmp);
         cl = mg_http_get_header(&tmp, "Content-Length");
-        LOG_F(INFO, "[Mongosse] http server event, connection: %p", c);
         if (cl == NULL) cl = &unknown;
         break;
     }
@@ -187,7 +204,7 @@ void cb_mg_event(mg_connection* c, int ev, void* ev_data) {
 
 #define CICO_MG_METHOD(name) cico_mg_##name
 
-void cico_mg_listen(WrenVM* vm) { 
+void cico_mg_mglisten(WrenVM* vm) { 
     WrenMgEvent* info = new WrenMgEvent;
     info->conn_handle = wrenGetSlotHandle(vm, 1);
     info->msg_handle = wrenGetSlotHandle(vm, 3);
@@ -195,7 +212,7 @@ void cico_mg_listen(WrenVM* vm) {
     info->vm = vm; 
     mg_http_listen(g_mg_mgr_ctx, WSString(2), cb_mg_event, info);
 }
-void cico_mg_connect(WrenVM* vm) { 
+void cico_mg_mgconnect(WrenVM* vm) { 
     WrenMgEvent* info = new WrenMgEvent;
     info->conn_handle = wrenGetSlotHandle(vm, 1);
     info->msg_handle = wrenGetSlotHandle(vm, 3);
@@ -204,8 +221,8 @@ void cico_mg_connect(WrenVM* vm) {
     mg_connect(g_mg_mgr_ctx, WSString(2), cb_mg_event, info);
 }
 void cico_mg_wrapfd(WrenVM* vm) { }
-void cico_mg_send(WrenVM* vm) { 
-    auto c = WSCls(1, mg_connection_wrapper)->connection;
+void cico_mg_mgsend(WrenVM* vm) { 
+    auto c = WSCls(1, mg_connection_wrapper)->pandingConnection;
     auto buf = WSString(2);
     auto len = strlen(buf);
     mg_send(c, (const void*)buf, len * sizeof(char));
@@ -232,7 +249,19 @@ void cico_mg_httpListen(WrenVM* vm) {
     (WSCls(1, mg_connection_wrapper))->connection = conn;
     LOG_F(INFO, "[Mongoose] listening %p %p %p, connection: %p", info->conn_handle, info->msg_handle, info->cb_handle, conn);
 }
-void cico_mg_httpConnect(WrenVM* vm) { }
+void cico_mg_httpConnect(WrenVM* vm) { 
+    WrenMgEvent* info = new WrenMgEvent;
+    info->conn_handle = wrenGetSlotHandle(vm, 1);
+    info->msg_handle = wrenGetSlotHandle(vm, 3);
+    info->cb_handle = wrenGetSlotHandle(vm, 4);
+    info->conn_rapper = WSCls(1, mg_connection_wrapper);
+    info->http_msg = WSCls(3, mg_http_message);
+    info->vm = vm; 
+    auto conn = mg_http_connect(g_mg_mgr_ctx, WSString(2), cb_mg_event, info);
+    info->conn_rapper->connection = conn;
+    (WSCls(1, mg_connection_wrapper))->connection = conn;
+    LOG_F(INFO, "[Mongoose] requesting %p %p %p, connection: %p", info->conn_handle, info->msg_handle, info->cb_handle, conn);
+}
 void cico_mg_httpServeDir(WrenVM* vm) { 
     auto c = WSCls(1, mg_connection_wrapper)->pandingConnection;
     auto hm = WSCls(2, mg_http_message);
@@ -323,6 +352,14 @@ WRENPROPERTY_RW(mg_http_serve_opts, ssi_pattern, String)
 WRENPROPERTY_RW(mg_http_serve_opts, extra_headers, String)
 WRENPROPERTY_RW(mg_http_serve_opts, mime_types, String)
 
+WRENPROPERTY_CVT_RO(mg_http_message, method, String, .ptr)
+WRENPROPERTY_CVT_RO(mg_http_message, uri, String, .ptr)
+WRENPROPERTY_CVT_RO(mg_http_message, query, String, .ptr)
+WRENPROPERTY_CVT_RO(mg_http_message, proto, String, .ptr)
+WRENPROPERTY_CVT_RO(mg_http_message, body, String, .ptr)
+WRENPROPERTY_CVT_RO(mg_http_message, head, String, .ptr)
+WRENPROPERTY_CVT_RO(mg_http_message, message, String, .ptr)
+
 static char* g_mongooseModuleSource = nullptr;
 const char* cicoMongosseSource() {
     if(!g_mongooseModuleSource) {g_mongooseModuleSource = loadModuleSource("cico_native/net/mongoose.wren");}
@@ -334,16 +371,16 @@ WrenForeignMethodFn wrenMongooseBindForeignMethod(WrenVM* vm, const char* classN
     WrenForeignMethodFn fn = nullptr; 
     if(strcmp(className, "MgMgr") == 0) {
         do {
-            if(strcmp(signature, "listen(_,_)") == 0) { fn = CICO_MG_METHOD(listen); break; }
-            if(strcmp(signature, "connect(_,_)") == 0) { fn = CICO_MG_METHOD(connect); break; }
+            if(strcmp(signature, "listen(_,_)") == 0) { fn = CICO_MG_METHOD(mglisten); break; }
+            if(strcmp(signature, "connect(_,_)") == 0) { fn = CICO_MG_METHOD(mgconnect); break; }
             if(strcmp(signature, "wrapfd(_,_)") == 0) { fn = CICO_MG_METHOD(wrapfd); break; }
-            if(strcmp(signature, "send(_,_)") == 0) { fn = CICO_MG_METHOD(send); break; }
+            if(strcmp(signature, "send(_,_)") == 0) { fn = CICO_MG_METHOD(mgsend); break; }
             if(strcmp(signature, "closeConn(_)") == 0) { fn = CICO_MG_METHOD(closeConn); break; }
             if(strcmp(signature, "httpParse(_,_)") == 0) { fn = CICO_MG_METHOD(httpParse); break; }
             if(strcmp(signature, "httpWriteChunk(_,_)") == 0) { fn = CICO_MG_METHOD(httpWriteChunk); break; }
             if(strcmp(signature, "HttpDeleteChunk(_,_)") == 0) { fn = CICO_MG_METHOD(HttpDeleteChunk); break; }
             if(strcmp(signature, "httpListen(_,_,_,_)") == 0) { fn = CICO_MG_METHOD(httpListen); break; }
-            if(strcmp(signature, "httpConnect(_,_,_)") == 0) { fn = CICO_MG_METHOD(httpConnect); break; }
+            if(strcmp(signature, "httpConnect(_,_,_,_)") == 0) { fn = CICO_MG_METHOD(httpConnect); break; }
             if(strcmp(signature, "httpServeDir(_,_,_)") == 0) { fn = CICO_MG_METHOD(httpServeDir); break; }
             if(strcmp(signature, "httpServeFile(_,_,_,_)") == 0) { fn = CICO_MG_METHOD(httpServeFile); break; }
             if(strcmp(signature, "httpReply(_,_,_,_)") == 0) { fn = CICO_MG_METHOD(httpReply); break; }
@@ -376,6 +413,16 @@ WrenForeignMethodFn wrenMongooseBindForeignMethod(WrenVM* vm, const char* classN
             if(strcmp(signature, "extra_headers=(_)") == 0) { fn = WRENSETTERFN(mg_http_serve_opts, extra_headers); break; }
             if(strcmp(signature, "mime_types") == 0) { fn = WRENGETTERFN(mg_http_serve_opts, mime_types); break; }
             if(strcmp(signature, "mime_types=(_)") == 0) { fn = WRENSETTERFN(mg_http_serve_opts, mime_types); break; }
+        } while(false);
+    } else if(strcmp(className, "MGHttpMessage") == 0) {
+        do {
+            if(strcmp(signature, "method") == 0) { fn = WRENGETTERFN(mg_http_message, method); break; }
+            if(strcmp(signature, "uri") == 0) { fn = WRENGETTERFN(mg_http_message, uri); break; }
+            if(strcmp(signature, "query") == 0) { fn = WRENGETTERFN(mg_http_message, query); break; }
+            if(strcmp(signature, "proto") == 0) { fn = WRENGETTERFN(mg_http_message, proto); break; }
+            if(strcmp(signature, "body") == 0) { fn = WRENGETTERFN(mg_http_message, body); break; }
+            if(strcmp(signature, "head") == 0) { fn = WRENGETTERFN(mg_http_message, head); break; }
+            if(strcmp(signature, "message") == 0) { fn = WRENGETTERFN(mg_http_message, message); break; }
         } while(false);
     }
     return fn;

@@ -13741,7 +13741,7 @@ const char *mg_url_uri(const char *url) {
   struct url u = urlparse(url);
   return u.uri ? url + u.uri : "/";
 }
-
+    
 unsigned short mg_url_port(const char *url) {
   struct url u = urlparse(url);
   unsigned short port = 0;

@@ -1,25 +1,21 @@
+class MgUri {
+    construct new(url) {
+        var items = url.split("/")
+        _host = items[2].trim()
+
+        _uri = ""
+        if(items.count > 3) {
+            for(i in 3...items.count) { _uri = _uri + "/%(items[i])" }
+        } else {
+            _uri = "/"
+        }
+    }
+    host{_host}
+    uri{_uri}
+}
+
 foreign class MGConnection {
     construct new() {}
-    // foreign next
-    // foreign id 
-    // foreign is_listening
-    // foreign is_client 
-    // foreign is_accepted 
-    // foreign is_resolving
-    // foreign is_arplooking
-    // foreign is_connecting 
-    // foreign is_tls
-    // foreign is_tls_hs
-    // foreign is_udp 
-    // foreign is_websocket
-    // foreign is_mqtt5
-    // foreign is_hexdumping
-    // foreign is_draining
-    // foreign is_closing
-    // foreign is_full
-    // foreign is_resp
-    // foreign is_readable
-    // foreign is_writable 
 }
 
 foreign class MGDNS {
@@ -50,19 +46,19 @@ foreign class MGHttpHeader {
 
 foreign class MGHttpMessage {
     construct new() {}
-    // foreign method
+    foreign method
     // foreign method=(val)
-    // foreign uri 
+    foreign uri 
     // foreign uri=(val)
-    // foreign query
+    foreign query
     // foreign query=(val)
-    // foreign proto 
+    foreign proto 
     // foreign proto=(val)
-    // foreign body 
+    foreign body 
     // foreign body=(val)
-    // foreign head 
+    foreign head 
     // foreign head=(val)
-    // foreign message 
+    foreign message 
     // foreign message=(val)
     // foreign headerAt(inHeader, index) // max header count of MG_MAX_HTTP_HEADERS
 }
@@ -116,7 +112,7 @@ class MgMgr {
     foreign static  httpWriteChunk(conn, text)
     foreign static  HttpDeleteChunk(conn, hm)
     foreign static  httpListen(connin, url, msg, cb)
-    foreign static  httpConnect(connin, url, cb)
+    foreign static  httpConnect(connin, url, msg, cb)
     foreign static  httpServeDir(conn, hm, opts)
     foreign static  httpServeFile(conn, hm, path, opts)
     foreign static  httpReply(conn, code, header, body)
@@ -144,6 +140,9 @@ class MgMgr {
 
     foreign static init()
     foreign static quit()
+    static UrlToUri(url) {
+        return MgUri.new(url)
+    }
 
     static onEvent(cb, conn, ev, msg) {
         System.print("================ on Event: %(cb) %(conn) %(msg)")

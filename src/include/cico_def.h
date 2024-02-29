@@ -41,6 +41,9 @@ void wren##cls##Set##prop(WrenVM* vm) { WSCls(0, cls)->prop = wrenGetSlot##type(
 void wren##cls##Get##prop(WrenVM* vm) { wrenSetSlot##type(vm, 0, WSCls(0, cls)->prop##cvt); } \
 void wren##cls##Set##prop(WrenVM* vm) { WSCls(0, cls)->prop = wrenGetSlot##type(vm, 1); }
 
+#define WRENPROPERTY_CVT_RO(cls, prop, type, cvt) \
+void wren##cls##Get##prop(WrenVM* vm) { wrenSetSlot##type(vm, 0, WSCls(0, cls)->prop##cvt); }
+
 #define WRENFOREIGNPROPERTY_RO(cls, prop, type) void wren##cls##Get##prop(WrenVM* vm) { wrenSetSlot##type(vm, 0, WSCls(0, cls)->prop); } 
 #define WRENFOREIGNPROPERTY_WO(cls, prop, type) void wren##cls##Set##prop(WrenVM* vm) { WSCls(0, cls)->prop = *WSCls(1, type); }
 
