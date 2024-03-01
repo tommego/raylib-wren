@@ -6,7 +6,7 @@ import "../signalslot" for Signal
 import "./control/style" for ControlStyle
 import "./control/toolbar" for SgToolBar
 import "./control/statusbar" for SgStatusBar
-import "cico.raylib" for Raylib, Color, Vector2, Vector3, Vector4, Rectangle
+import "cico.raylib" for Raylib
 
 class SgWindow is SgRectangle{
     construct new(title) {

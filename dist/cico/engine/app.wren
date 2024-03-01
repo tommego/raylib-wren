@@ -1,10 +1,10 @@
-import "./tween" for Tween,EasingType,Anim
+import "./tween" for Tween
 import "cico/engine/signalslot" for SignalMgr
 import "cico/engine/timer" for TimerMgr
 import "./sg2d/scenegraph2d" for SceneGraph2D
 import "cico/engine/sg3d/scenegraph3d" for SceneGraph3D
 import "cico.raylib" for Raylib,Color
-import "cico.net.mongoose" for MgMgr,MGHttpMessage,MGConnection
+import "cico.net.mongoose" for MgMgr
 class App {
     construct new() {  
         TimerMgr.init()

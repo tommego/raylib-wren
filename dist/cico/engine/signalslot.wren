@@ -1,5 +1,3 @@
-import "cico.raylib" for Raylib
-
 class Signal {
     construct new(emitter) { 
         _emitter = emitter 

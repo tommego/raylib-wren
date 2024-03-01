@@ -1,5 +1,4 @@
-import "cico.math" for Easing 
-import "cico.raylib" for Raylib, Vector2, Vector3, Vector4, Color
+import "cico.raylib" for Raylib
 import "cico/engine/signalslot" for Signal 
 
 class Timer {
