@@ -22,7 +22,7 @@ class cico {
         __app = App.new()
         __bgColor = Color.new(111, 111, 111, 255)
         var mainWindow = SgWindow.new("Engine test")
-        if(mainWindow.screenCount > 1) { mainWindow.setScreen(1) }
+        // if(mainWindow.screenCount > 1) { mainWindow.setScreen(1) }
         var col = SgColumn.new(mainWindow, { 
             "spacing": 20, 
             "x": 30, 

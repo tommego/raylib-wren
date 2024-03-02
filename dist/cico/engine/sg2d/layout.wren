@@ -1,4 +1,4 @@
-import "cico.raylib" for Raylib,Vector2,Vector3,Vector4
+import "cico.raylib" for Raylib
 import "./scenegraph2d" for SgItem
 import "../signalslot" for Signal 
 import "../math" for Math

@@ -2,7 +2,7 @@ import "../scenegraph2d" for SgItem,SceneGraph2D,SgEvent
 import "../rectangle" for SgRectangle
 import "../../signalslot" for Signal
 import "./style" for ControlStyle
-import "cico.raylib" for Raylib,Font,Rectangle,Vector2,Vector3,Vector4,Color
+import "cico.raylib" for Raylib,Font,Vector2,Color
 class SgButton is SgRectangle {
     construct new() {
         super()

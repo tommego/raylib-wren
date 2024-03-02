@@ -1,10 +1,10 @@
-import "../scenegraph2d" for SgItem,SgEvent,SceneGraph2D
+import "../scenegraph2d" for SgItem,SgEvent
 import "./listmodel" for ListModel
 import "./listview" for SgListView
 import "../../signalslot" for Signal
 import "../../tween" for Tween,EasingType
 import "../../math" for Math 
-import "cico.raylib" for Raylib,Color,Vector2,Vector3,Vector4,Rectangle
+import "cico.raylib" for Raylib,Color
 
 class SgSwipeView is SgItem {
     construct new() {

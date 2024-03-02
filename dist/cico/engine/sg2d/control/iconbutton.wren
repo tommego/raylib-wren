@@ -1,8 +1,8 @@
-import "../scenegraph2d" for SgItem,SceneGraph2D,SgEvent,Anchors 
+import "../scenegraph2d" for SgItem,SgEvent,Anchors 
 import "../rectangle" for SgRectangle
 import "../../signalslot" for Signal
 import "./style" for ControlStyle
-import "cico.raylib" for Raylib,Font,Rectangle,Vector2,Vector3,Vector4,Color
+import "cico.raylib" for Raylib,Color
 import "../icon" for SgIcon
 class SgIconButton is SgRectangle {
     construct new() {

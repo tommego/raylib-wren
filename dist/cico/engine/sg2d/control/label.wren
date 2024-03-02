@@ -1,5 +1,5 @@
 import "cico/engine/sg2d/scenegraph2d" for SgItem,SceneGraph2D
-import "cico.raylib" for Raylib,Rectangle,Vector2,Vector4,Color
+import "cico.raylib" for Raylib,Vector2,Color
 import "cico/engine/signalslot" for Signal 
 class SgLabel is SgItem {
     construct new() {

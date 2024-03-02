@@ -1,4 +1,4 @@
-import "../scenegraph2d" for SgItem,SceneGraph2D,SgEvent
+import "../scenegraph2d" for SgItem,SgEvent
 import "../rectangle" for SgRectangle
 import "./button" for SgButton
 import "../../signalslot" for Signal
@@ -7,7 +7,7 @@ import "../layout" for SgColumn
 import "./label" for SgLabel
 import "./popup" for SgPopup
 import "./listmodel" for ListModel
-import "cico.raylib" for Raylib,Font,Rectangle,Vector2,Vector3,Vector4,Color,ValueList
+import "cico.raylib" for Raylib,Font,Rectangle,Vector2,Color,ValueList
 
 class SgComboBoxDelegate is SgRectangle {
     construct new(control, index, modelData) {

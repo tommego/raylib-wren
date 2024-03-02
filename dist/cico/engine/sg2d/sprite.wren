@@ -1,5 +1,5 @@
-import "./scenegraph2d" for SgNode2D, SgItem, Border
-import "cico.raylib" for Vector2,Vector3,Vector4,Color,Rectangle,Raylib,Texture,Image 
+import "./scenegraph2d" for SgItem
+import "cico.raylib" for Vector2,Color,Rectangle,Raylib,Texture 
 
 class SgSprite is SgItem {
     construct new() {

@@ -1,7 +1,7 @@
 import "../scenegraph2d" for SgItem,SgEvent,SceneGraph2D
 import "./listmodel" for ListModel
 import "../../signalslot" for Signal
-import "cico.raylib" for Raylib,Color,Vector2,Vector3,Vector4,Rectangle
+import "cico.raylib" for Raylib,Color,Vector2,Rectangle
 
 class DelegateBase is SgItem{
     construct new(listview, index, modelData) {

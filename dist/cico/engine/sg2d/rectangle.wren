@@ -1,5 +1,5 @@
-import "./scenegraph2d" for SgNode2D, SgItem, Border
-import "cico.raylib" for Vector2,Vector3,Vector4,Color,Rectangle,Raylib 
+import "./scenegraph2d" for SgItem, Border
+import "cico.raylib" for Color,Rectangle,Raylib 
 
 class SgRectangle is SgItem{
     construct new() { 
