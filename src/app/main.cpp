@@ -10,6 +10,8 @@ int main(int argc, const char* argv[])
         cico::cico_stop(engine);
         cico::cico_destroy(engine);
         engine = nullptr;
+    } else {
+        printf("Usage: ./cico_app path/to/script.wren \n");
     }
     return 0;
 }
