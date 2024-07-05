@@ -63,8 +63,9 @@ class ListModel {
     }
     // clear all item datas
     clear() {
-        _items = []
-        _itemCleared.emit()
+        while(count > 0) {
+            removeAt(0)
+        }
     }
     // set item map data with key,value
     setProperty(index, prop, value) {

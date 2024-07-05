@@ -34,6 +34,8 @@ class SgSprite is SgItem {
         _srcRect = Rectangle.new()
         _origin = Vector2.new()
     }
+
+    sourceSize{_srcRect}
     
     source{_source}
     source=(val) {
@@ -46,6 +48,10 @@ class SgSprite is SgItem {
             }
             _texture = Texture.new()
             Raylib.LoadTexture(_texture, _source)
+            _srcRect.x = 0
+            _srcRect.y = 0
+            _srcRect.width = _texture.width 
+            _srcRect.height = _texture.height 
         }
     }
 
@@ -53,10 +59,6 @@ class SgSprite is SgItem {
         super.onRender()
         if(_texture) {
             var bounds = finalBounds
-            _srcRect.x = 0
-            _srcRect.y = 0
-            _srcRect.width = _texture.width 
-            _srcRect.height = _texture.height 
             _dstRect.x = bounds.x + bounds.width / 2
             _dstRect.y = bounds.y + bounds.height / 2
             _dstRect.width = bounds.width 
