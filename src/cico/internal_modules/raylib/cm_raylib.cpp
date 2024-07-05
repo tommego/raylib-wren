@@ -2121,6 +2121,7 @@ void RAYLIBFN(PackRectangles)(WrenVM* vm) {
     int num_nodes = w;
     Rectangle* in_rects = nullptr;
     if(vinput->valueType == 1) { in_rects = (Rectangle*)vinput->data; }
+    LOG_F(INFO, "[RectPacker] packing w:%d h:%d, rect count: %d, math: %d, num_nodes: %d, output_data: %p", w, h, vinput->count, math, num_nodes, voutput->data);
     if(in_rects) {
         stbrp_rect *brp_rects = (stbrp_rect*)malloc(num_rects * sizeof(stbrp_rect));
         stbrp_node *brp_nodes = (stbrp_node*)malloc(num_nodes * sizeof(stbrp_node));
@@ -2135,6 +2136,7 @@ void RAYLIBFN(PackRectangles)(WrenVM* vm) {
             voutput->data = malloc(num_rects * sizeof(Rectangle));
         }
         voutput->count = num_rects;
+
         for(int i = 0; i < num_rects; i++) {
             brp_rects[i].w = in_rects[i].width;
             brp_rects[i].h = in_rects[i].height;
@@ -2142,7 +2144,7 @@ void RAYLIBFN(PackRectangles)(WrenVM* vm) {
             brp_rects[i].was_packed = 1;
         }
         stbrp_init_target(&ctx, w, h, brp_nodes, num_nodes);
-        stbrp_setup_allow_out_of_mem(&ctx, 0);
+        stbrp_setup_allow_out_of_mem(&ctx, 1);
         stbrp_setup_heuristic(&ctx, math);
         stbrp_pack_rects(&ctx, brp_rects, num_rects);
         Rectangle* out_rects = (Rectangle*)voutput->data;
@@ -2150,7 +2152,10 @@ void RAYLIBFN(PackRectangles)(WrenVM* vm) {
         { 
             out_rects[brp_rects[i].id] = Rectangle{ float(brp_rects[i].x), float(brp_rects[i].y), float(brp_rects[i].w), float(brp_rects[i].h) }; 
         }
+        free(brp_nodes);
+        free(brp_rects);
     }
+    LOG_F(INFO, "[RectPacker] Packing finished.");
 }
 
 WrenForeignMethodFn wrenRaylibBindForeignMethod(WrenVM* vm, const char* className, bool isStatic, const char* signature)

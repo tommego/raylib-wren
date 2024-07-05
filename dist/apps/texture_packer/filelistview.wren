@@ -46,11 +46,11 @@ class FileDelegate is SgButton{
         _row.x = 16
         _row.anchors.verticalCenter({"target": this, "value": Anchors.VerticalCenter})
 
-        _sprite = SgSprite.new(_row, {"width": 20, "height": 20, "source": _modelData})
+        _sprite = SgSprite.new(_row, {"width": 44, "height": 44, "source": _modelData})
 
-        _label = SgLabel.new(_row)
+        _label = SgLabel.new(_row, {"y": 10})
         _label.text = _modelData.split("\\")[-1]
-        _label.fontSize = 13
+        _label.fontSize = 16
         _label.color.parse("#bcbcbc")
         _line = SgRectangle.new(this,{"width": this.width, "height": 1, "color": "#3f000000"})
         _line.anchors.bottom({"target":this, "value": Anchors.Bottom})

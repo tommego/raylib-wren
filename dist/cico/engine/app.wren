@@ -9,7 +9,7 @@ class App {
     construct new() {  
         TimerMgr.init()
         Tween.init()
-        MgMgr.init()
+        // MgMgr.init()
         _bgColor = Color.new(111, 111, 111, 255)
         SceneGraph3D.init()
     }
@@ -26,9 +26,8 @@ class App {
         TimerMgr.tick()
 
         // network 
-        // MgMgr.tick()
-        var result = MgMgr.tick()
-        if(result) { result[0].call(result[1], result[2], result[3]) }
+        // var result = MgMgr.tick()
+        // if(result) { result[0].call(result[1], result[2], result[3]) }
     }
 
     render() {
@@ -54,6 +53,6 @@ class App {
 
     exit() {
         Raylib.CloseWindow()
-        MgMgr.quit()
+        // MgMgr.quit()
     }
 }

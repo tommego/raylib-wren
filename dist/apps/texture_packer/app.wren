@@ -10,6 +10,8 @@ import "cico/engine/sg2d/control/toolbar" for SgToolBar
 import "cico/engine/sg2d/control/listview" for SgListView
 import "cico/engine/sg2d/layout" for SgRow,SgFlowLayout, SgColumn 
 import "./filelistview" for FileListView
+import "./previewpanel" for PreviewPanel
+
 class cico {
     static init() {
         __app = App.new()
@@ -68,7 +70,7 @@ class cico {
 
         __content = SgRow.new(mainWindow)
         __fileLIstView = FileListView.new(__content, {"width": 300})
-        __imageRender = SgRectangle.new(__content, {"width": 100, "height": 200, "color": Color.fromString("#222222")})
+        __imageRender = PreviewPanel.new(__content, {"width": 100, "height": 200, "color": Color.fromString("#222222")})
         __propertyPanel = SgRectangle.new(__content, { "width": 300, "color": Color.fromString("#333333") })
 
         mainWindow.content.geometryChanged.connect{|e,v|
@@ -89,6 +91,7 @@ class cico {
                 Raylib.LoadDirectoryFiles(files, path)
                 var filePaths = files.paths
                 __fileLIstView.loadFiles(files.paths)
+                __imageRender.loadFiles(files.paths)
             }
             Raylib.UnloadDroppedFiles(dropedFiles)
         }
