@@ -8,6 +8,7 @@ import "cico/engine/math" for Math
 import "cico.raylib" for Raylib, Color, RenderTexture,Camera2D,Vector2,Vector3,Matrix,Texture,Rectangle
 import "cico/engine/sg2d/icon" for SgIcon
 import "cico/engine/signalslot" for Signal 
+import "cico/engine/timer" for Timer  
 
 class Control {
     construct new() {
@@ -41,7 +42,7 @@ class Canvas is SgRectangle {
     initCanvasProps_() {
         _rtt = RenderTexture.new() 
         _rtex = Texture.new() 
-        reGenTexture()
+        // reGenTexture()
         _camera = Camera2D.new()
         _camera.zoom = 0.3
         _control = Control.new()
@@ -57,9 +58,17 @@ class Canvas is SgRectangle {
         this.skipRenderChild = true 
         this.name = "canvas"
         this.geometryChanged.connect{|e,v|
-            Raylib.UnloadRenderTexture(_rtt)
-            reGenTexture()
+            _rttGenTimer.restart()
         }
+        _rttGenTimer = Timer.new({
+            "repeat": false,
+            "interval": 0.1,
+            "triggered": Fn.new{
+                Raylib.UnloadRenderTexture(_rtt)
+                reGenTexture()
+            }
+        })
+        _rttGenTimer.start()
     }
     reGenTexture() {
         Raylib.LoadRenderTexture(_rtt, this.width, this.height)

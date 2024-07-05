@@ -180,29 +180,31 @@ void cico_start(CicoEngine* engine, std::string program)
   auto vm = ((VmCtx*)engine->vm_ctx)->wren_vm;
   // wrenInterpret(vm, module, app_program_raw.c_str());
   ((VmCtx*)engine->vm_ctx)->wren_result = wrenInterpret(vm, module, program_raw.c_str());
-  wrenEnsureSlots(vm, 1);
-  wrenGetVariable(vm, module, "cico", 0);
-  auto app_handle = wrenGetSlotHandle(vm, 0);
-  auto mapp_init = wrenMakeCallHandle(vm, "init()");
-  auto mapp_eventLoop = wrenMakeCallHandle(vm, "eventLoop()");
-  auto mapp_exit = wrenMakeCallHandle(vm, "exit()");
+  if(wrenHasVariable(vm, module, "cico")) {
+    wrenEnsureSlots(vm, 1);
+    wrenGetVariable(vm, module, "cico", 0);
+    auto app_handle = wrenGetSlotHandle(vm, 0);
+    auto mapp_init = wrenMakeCallHandle(vm, "init()");
+    auto mapp_eventLoop = wrenMakeCallHandle(vm, "eventLoop()");
+    auto mapp_exit = wrenMakeCallHandle(vm, "exit()");
 
-  wrenEnsureSlots(vm, 1);
-  wrenSetSlotHandle(vm, 0, app_handle);
-  WrenInterpretResult result = wrenCall(vm, mapp_init);
 
-  while(1) {
     wrenEnsureSlots(vm, 1);
     wrenSetSlotHandle(vm, 0, app_handle);
-    result = wrenCall(vm, mapp_eventLoop);
-    auto ret = wrenGetSlotDouble(vm, 0);
-    // LOG_F(INFO, "[CICO]event loop %f", ret);
-    if(ret != 0) { break; }
-  };
-  
-  wrenEnsureSlots(vm, 1);
-  wrenSetSlotHandle(vm, 0, app_handle);
-  result = wrenCall(vm, mapp_exit);
+    WrenInterpretResult result = wrenCall(vm, mapp_init);
+
+    while(1) {
+      wrenEnsureSlots(vm, 1);
+      wrenSetSlotHandle(vm, 0, app_handle);
+      result = wrenCall(vm, mapp_eventLoop);
+      auto ret = wrenGetSlotDouble(vm, 0);
+      if(ret != 0) { break; }
+    };
+    
+    wrenEnsureSlots(vm, 1);
+    wrenSetSlotHandle(vm, 0, app_handle);
+    result = wrenCall(vm, mapp_exit);
+  }
 }
 
 void cico_stop(CicoEngine* engine)

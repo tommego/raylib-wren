@@ -34,7 +34,6 @@ class SgIcon is SgItem {
     source=(val) {
         if(_source != val) {
             _source = val 
-            System.print("%(val), %(_source)")
             if(_texture) {
                 Raylib.UnloadTexture(_texture)
                 _texture = null 
