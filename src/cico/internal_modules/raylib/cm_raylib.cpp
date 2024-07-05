@@ -5,6 +5,7 @@ extern "C" {
     #include "raylib.h"
     #include "config.h"
     #include "raymath.h"
+    #include "external/stb_rect_pack.h"
 }
 
 namespace cico
@@ -1536,7 +1537,9 @@ void RAYLIBFN(LoadDroppedFiles)(WrenVM* vm) {
     memcpy(input, &output, sizeof(FilePathList));
 }
 void RAYLIBFN(UnloadDroppedFiles)(WrenVM* vm) { 
-    UnloadDroppedFiles(*WSCls(1, FilePathList));
+    auto input = WSCls(1, FilePathList);
+    UnloadDroppedFiles(*input);
+    input->count = 0;
 }
 void RAYLIBFN(GetFileModTime)(WrenVM* vm) { wrenSetSlotDouble(vm, 0, GetFileModTime(WSString(1))); }
 
@@ -2107,6 +2110,48 @@ void RAYLIBFN(GetRayCollisionBox)(WrenVM* vm) {}
 void RAYLIBFN(GetRayCollisionMesh)(WrenVM* vm) {}
 void RAYLIBFN(GetRayCollisionTriangle)(WrenVM* vm) {}
 void RAYLIBFN(GetRayCollisionQuad)(WrenVM* vm) {}
+
+void RAYLIBFN(PackRectangles)(WrenVM* vm) {
+    ValueList* vinput = WSCls(1, ValueList);
+    ValueList* voutput = WSCls(2, ValueList);
+    int w = int(WSDouble(3));
+    int h = int(WSDouble(4));
+    int math = int(WSDouble(5));
+    int num_rects = vinput->count;
+    int num_nodes = w;
+    Rectangle* in_rects = nullptr;
+    if(vinput->valueType == 1) { in_rects = (Rectangle*)vinput->data; }
+    if(in_rects) {
+        stbrp_rect *brp_rects = (stbrp_rect*)malloc(num_rects * sizeof(stbrp_rect));
+        stbrp_node *brp_nodes = (stbrp_node*)malloc(num_nodes * sizeof(stbrp_node));
+        memset(brp_rects, 0, sizeof(stbrp_rect) * num_rects);
+        memset(brp_nodes, 0, sizeof(stbrp_node) * num_nodes);
+        stbrp_context ctx;
+        ctx.init_mode = 1;
+        voutput->valueType = 1;
+        if(voutput->data) {
+            voutput->data = realloc(voutput->data, num_rects * sizeof(Rectangle));
+        } else {
+            voutput->data = malloc(num_rects * sizeof(Rectangle));
+        }
+        voutput->count = num_rects;
+        for(int i = 0; i < num_rects; i++) {
+            brp_rects[i].w = in_rects[i].width;
+            brp_rects[i].h = in_rects[i].height;
+            brp_rects[i].id = i;
+            brp_rects[i].was_packed = 1;
+        }
+        stbrp_init_target(&ctx, w, h, brp_nodes, num_nodes);
+        stbrp_setup_allow_out_of_mem(&ctx, 0);
+        stbrp_setup_heuristic(&ctx, math);
+        stbrp_pack_rects(&ctx, brp_rects, num_rects);
+        Rectangle* out_rects = (Rectangle*)voutput->data;
+        for(int i = 0; i < num_rects; i++)
+        { 
+            out_rects[brp_rects[i].id] = Rectangle{ float(brp_rects[i].x), float(brp_rects[i].y), float(brp_rects[i].w), float(brp_rects[i].h) }; 
+        }
+    }
+}
 
 WrenForeignMethodFn wrenRaylibBindForeignMethod(WrenVM* vm, const char* className, bool isStatic, const char* signature)
 {
@@ -3131,6 +3176,8 @@ WrenForeignMethodFn wrenRaylibBindForeignMethod(WrenVM* vm, const char* classNam
             if(strcmp(signature, "GetRayCollisionMesh(_,_,_,_)") == 0) { fn = RAYLIBFN(GetRayCollisionMesh); break; }
             if(strcmp(signature, "GetRayCollisionTriangle(_,_,_,_,_)") == 0) { fn = RAYLIBFN(GetRayCollisionTriangle); break; }
             if(strcmp(signature, "GetRayCollisionQuad(_,_,_,_,_,_)") == 0) { fn = RAYLIBFN(GetRayCollisionQuad); break; }
+            if(strcmp(signature, "PackRectangles(_,_,_,_,_)") == 0) { fn = RAYLIBFN(PackRectangles); break; }
+            
 
         } while(false);
     }

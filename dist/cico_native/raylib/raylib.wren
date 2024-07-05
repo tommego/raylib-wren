@@ -1255,6 +1255,11 @@ class Raylib {
     foreign static GetRayCollisionMesh(incollision, ray, mesh, transform)    
     foreign static GetRayCollisionTriangle(incollision, ray, p1, p2, p3)
     foreign static GetRayCollisionQuad(incollision, ray, p1, p2, p3, p4)
+
+    static PACK_RECT_MATH_DEFAULT{0}
+    static PACK_RECT_MATH_BLH{0}
+    static PACK_RECT_MATH_BFH{1}
+    foreign static PackRectangles(in_rects, out_rects, max_width, max_height, method)
 }
 
 // raymath

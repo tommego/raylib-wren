@@ -4,13 +4,11 @@ import "cico/engine/sg2d/window" for SgWindow
 import "cico/engine/sg2d/rectangle" for SgRectangle
 import "cico/engine/sg2d/control/label" for SgLabel
 import "cico/engine/sg2d/control/fpslabel" for FpsLabel
-import "cico.raylib" for Raylib, Color
+import "cico.raylib" for Raylib, Color, FilePathList
 import "cico/engine/sg2d/control/menubar" for SgMenuBar, SgMenu, SgMenuItem
 import "cico/engine/sg2d/control/toolbar" for SgToolBar 
-import "./ui/workspace" for WorkSpace
-import "./ui/toolbox" for ToolBox
-import "./editor" for Editor
-
+import "cico/engine/sg2d/control/listview" for SgListView
+import "cico/engine/sg2d/layout" for SgRow,SgFlowLayout, SgColumn 
 class cico {
     static init() {
         __app = App.new()
@@ -22,9 +20,6 @@ class cico {
 
         var mainWindow = __mainWindow
         mainWindow.fps = 120
-        // if(mainWindow.screenCount > 1) { mainWindow.setScreen(1) }
-
-        Editor.init()
 
         var menuBar = SgMenuBar.new({
             "height": 30,
@@ -58,11 +53,6 @@ class cico {
             ]
         })
 
-        var toolBar = ToolBox.new({
-            "height": 35,
-            "color": Color.new(45, 45, 45, 255)
-        })
-
         var statusBar = SgRectangle.new({
             "height": 25,
             "color": Color.new(45, 45, 45, 255),
@@ -73,22 +63,37 @@ class cico {
         fpsLabel.anchors.verticalCenter({"target": statusBar, "value": Anchors.VerticalCenter})
 
         mainWindow.menuBar = menuBar
-        mainWindow.toolBar = toolBar 
         mainWindow.statusBar = statusBar
-        var workspace = WorkSpace.new(mainWindow, {
-            "color": Color.new(66, 66, 66, 255),
-            "width": mainWindow.contentWidth,
-            "height": mainWindow.contentHeight
-        })
+
+        __content = SgRow.new(mainWindow)
+        __fileLIstView = SgListView.new(__content, {"width": 300})
+        __imageRender = SgRectangle.new(__content, {"width": 100, "height": 200, "color": Color.fromString("#222222")})
+        __propertyPanel = SgRectangle.new(__content, { "width": 300, "color": Color.fromString("#333333") })
 
         mainWindow.content.geometryChanged.connect{|e,v|
-            workspace.width = mainWindow.contentWidth
-            workspace.height = mainWindow.contentHeight 
+            __fileLIstView.height = mainWindow.contentHeight
+            __imageRender.height = mainWindow.contentHeight
+            __propertyPanel.height = mainWindow.contentHeight
+            __imageRender.width = mainWindow.contentWidth - __fileLIstView.width - __propertyPanel.width
         }
     }
 
     static eventLoop() {
-
+        if(Raylib.IsFileDropped()) {
+            var dropedFiles = FilePathList.new()
+            Raylib.LoadDroppedFiles(dropedFiles)
+            var path = dropedFiles.paths[0]
+            if(!Raylib.IsPathFile(path)) {
+                var files = FilePathList.new()
+                Raylib.LoadDirectoryFiles(files, path)
+                var filePaths = files.paths
+                for(ipath in filePaths) {
+                    var fpath = ipath.split("\\")[-1]
+                    __fileLIstView.model.add(fpath)
+                }
+            }
+            Raylib.UnloadDroppedFiles(dropedFiles)
+        }
         var windowClosed = Raylib.WindowShouldClose()
         __app.loop()
         return windowClosed ? 1 : 0
