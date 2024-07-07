@@ -15,11 +15,11 @@ class Border {
 
 class Anchors {
     construct new(target) {
+        _target = target 
         _left = null
         _right = null
         _top = null
         _bottom = null
-        _target = null 
         _centerIn = null 
         _horizontalCenter = null 
         _verticalCenter = null 
@@ -28,11 +28,22 @@ class Anchors {
         _topMargin = 0
         _bottomMargin = 0
         _fill = null 
-        _target = target 
-
         _refreshBinding = Fn.new{|target, val| refreshGeo()}
         _target.widthChanged.connect(_refreshBinding)
         _target.heightChanged.connect(_refreshBinding)
+    }
+    parse(map) {
+        if(map.contanis("right")) { this.right = map["right"] }
+        if(map.contains("left")) { this.left = map["left"] }
+        if(map.contains("top")) { this.top = map["top"] }
+        if(map.contains("bottom")) { this.bottom = map["bottom"] }
+        if(map.contains("centerIn")) { this.centerIn = map["centerIn"]}
+        if(map.contains("horizontalCenter")) { this.horizontalCenter = map["horizontalCenter"] }
+        if(map.contains("verticalCenter")) { this.verticalCenter = map["verticalCenter"] }
+        if(map.contains("rightMargin")) { this.rightMargin = map["rightMargin"]}
+        if(map.contains("topMargin")) { this.topMargin = map["topMargin"]}
+        if(map.contains("leftMargin")) { this.leftMargin = map["leftMargin"]}
+        if(map.contains("bottomMargin")) { this.bottomMargin = map["bottomMargin"]}
     }
     static Left{0}
     static Right{1}
@@ -491,6 +502,7 @@ class SgNode2D {
     verticalCenter{_height / 2}
     horizontalCenter{_width / 2}
     anchors{_anchors}
+    anchors=(val){_anchors = val}
     skipRenderChild{_skipRenderChild}
     skipRenderChild=(val){_skipRenderChild = val}
     absoluteCoordinate{_absoluteCoordinate}
@@ -752,6 +764,9 @@ class SgNode2D {
                 this.addNode(c)
             }
         }
+        if(map.keys.contains("anchors")) {
+            this.anchors = map["anchors"]
+        }
     }
 
     childrenByType(type) {
@@ -893,7 +908,7 @@ class SceneGraph2D {
                 
 
                 if(__root) { 
-                    processEvent_(__root) 
+                    processEvent_(__root, __mouseWorldPos) 
                 }
                 Fiber.yield()
             }
@@ -937,25 +952,30 @@ class SceneGraph2D {
     }
 
     // process event for scenegraph 
-    static processEvent_(node) {
+    static processEvent_(node, mouseWorldPos) {
         var ret = 0
+
         if(node.visible) {
             var shouldIterateSubNode = true 
             if(node.clip) {
-                var inBounds = Raylib.CheckCollisionPointRec(__mouseWorldPos, node.finalBounds)
+                var inBounds = Raylib.CheckCollisionPointRec(mouseWorldPos, node.finalBounds)
                 if(!inBounds) {shouldIterateSubNode = false }
             }
             if(shouldIterateSubNode) {
                 for(i in (node.children.count - 1)...-1) {
                     var child = node.children[i]
-                    ret = processEvent_(child) 
+                    if(node.skipRenderChild) {
+                        ret = processEvent_(child, node.mouseWorldPos) 
+                    } else {
+                        ret = processEvent_(child, mouseWorldPos) 
+                    }
                     if(ret > 0) {
                         break
                     }
                 }
             }
             if(ret == 0) { 
-                ret = checkNodeMouseEvent_(node) 
+                ret = checkNodeMouseEvent_(node, mouseWorldPos) 
                 if(ret > 0) { __focusNode == node }
             }
             checkNodeKeyEvent_(node)
@@ -974,7 +994,7 @@ class SceneGraph2D {
     }
 
     // check if is node accepted event 
-    static checkNodeMouseEvent_(node) {
+    static checkNodeMouseEvent_(node, mouseWorldPos) {
         var ret = 0
         var bounds = node.finalBounds
         if(node.absoluteCoordinate && node.parent) {
@@ -982,7 +1002,7 @@ class SceneGraph2D {
             bounds.y = bounds.y + node.parent.finalBounds.y 
         }
 
-        var inBounds = Raylib.CheckCollisionPointRec(__mouseWorldPos, bounds)
+        var inBounds = Raylib.CheckCollisionPointRec(mouseWorldPos, bounds)
         
         // check hover
         if(inBounds) {
@@ -998,8 +1018,8 @@ class SceneGraph2D {
                     }
                 } else {
                     if(__mouseDelta.x != 0 || __mouseDelta.y != 0) { 
-                        __v2move.x = __mouseWorldPos.x - bounds.x
-                        __v2move.y = __mouseWorldPos.y - bounds.y
+                        __v2move.x = mouseWorldPos.x - bounds.x
+                        __v2move.y = mouseWorldPos.y - bounds.y
                         ret = node.onEvent(SceneGraph2D.packEvent(SgEvent.MouseMove, {"position": __v2move, "delta": __mouseDelta}))
                     } else {
                         ret = 1
@@ -1011,8 +1031,8 @@ class SceneGraph2D {
             } else {
                 if(__mousePressNode == node) {
                     if(__mouseDelta.x != 0 || __mouseDelta.y != 0) { 
-                        __v2move.x = __mouseWorldPos.x - bounds.x
-                        __v2move.y = __mouseWorldPos.y - bounds.y
+                        __v2move.x = mouseWorldPos.x - bounds.x
+                        __v2move.y = mouseWorldPos.y - bounds.y
                         ret = node.onEvent(SceneGraph2D.packEvent(SgEvent.MouseMove, {"position": __v2move, "delta": __mouseDelta}))
                     } else {
                         ret = 1
@@ -1026,8 +1046,8 @@ class SceneGraph2D {
                 __hoverNodeChanged.emit(null)
             }else if(__mousePressNode == node) {
                 if(__mouseDelta.x != 0 || __mouseDelta.y != 0) { 
-                    __v2move.x = __mouseWorldPos.x - bounds.x
-                    __v2move.y = __mouseWorldPos.y - bounds.y
+                    __v2move.x = mouseWorldPos.x - bounds.x
+                    __v2move.y = mouseWorldPos.y - bounds.y
                     ret = node.onEvent(SceneGraph2D.packEvent(SgEvent.MouseMove, {"position": __v2move, "delta": __mouseDelta}))
                 } else {
                     ret = 1
@@ -1037,8 +1057,8 @@ class SceneGraph2D {
 
         // mouse button press 
         if(__mousePress >= 0 && inBounds) {
-            __v2move.x = __mouseWorldPos.x - bounds.x
-            __v2move.y = __mouseWorldPos.y - bounds.y
+            __v2move.x = mouseWorldPos.x - bounds.x
+            __v2move.y = mouseWorldPos.y - bounds.y
             ret = node.onEvent(SceneGraph2D.packEvent(SgEvent.MousePressed, { "key": __mousePress, "position": __v2move }))
             __mousePressNode = node 
             if(__mousePress == Raylib.MOUSE_BUTTON_LEFT && node.dragEnabled) { 

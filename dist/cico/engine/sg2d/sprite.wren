@@ -65,6 +65,7 @@ class SgSprite is SgItem {
             _dstRect.height = bounds.height 
             _origin.x = bounds.width / 2
             _origin.y = bounds.height / 2
+            _color.a = finalOpacity * 255
             Raylib.DrawTexturePro(_texture, _srcRect, _dstRect, _origin, finalRotation, _color)
         }
     }

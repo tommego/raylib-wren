@@ -11,6 +11,7 @@ import "cico.raylib" for Raylib, Color,Vector2
 import "cico/engine/sg2d/control/listview" for SgListView
 import "cico/engine/sg2d/control/label" for SgLabel
 import "cico/engine/signalslot" for Signal
+import "./workspace" for Workspace
 
 class FileDelegate is SgButton{
     construct new(listview, index, modelData) {
@@ -63,7 +64,7 @@ class FileDelegate is SgButton{
             _line.width = this.width
         }
         _control.currentIndexChanged.connect{|e,v| this.backgroundColor = Color.fromString(_index == _control.currentIndex ? "#424242" : "#363636")}
-        this.clicked.connect{|e,v| _control.currentIndex = _index }
+        this.clicked.connect{|e,v| Workspace.selectedIndex = _index }
         onDefaultBinding()
     } 
     index{_index}   
@@ -138,6 +139,10 @@ class FileListView is SgListView {
     initFileListViewProps_() {
         this.delegate = FileDelegate
         this.smooth = 12
+        this.currentIndex = Workspace.selectedIndex
+        Workspace.selectedIndexChanged.connect{|e,v|
+            this.currentIndex = Workspace.selectedIndex
+        }
     }
 
     loadFiles(files) {

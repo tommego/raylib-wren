@@ -1,4 +1,4 @@
-import "cico/engine/sg2d/scenegraph2d" for Border, SceneGraph2D, SgItem, Anchors
+import "cico/engine/sg2d/scenegraph2d" for Border, SceneGraph2D, SgItem, Anchors, SgEvent 
 import "cico/engine/sg2d/window" for SgWindow
 import "cico/engine/sg2d/rectangle" for SgRectangle
 import "cico/engine/sg2d/sprite" for SgSprite
@@ -12,6 +12,7 @@ import "cico/engine/sg2d/control/listview" for SgListView
 import "cico/engine/sg2d/control/label" for SgLabel
 import "cico/engine/signalslot" for Signal
 import "cico/engine/timer" for Timer  
+import "./workspace" for Workspace 
 
 class Control {
     construct new() {
@@ -58,6 +59,8 @@ class Canvas is SgRectangle {
         _tint = Color.fromString("#ffffff")
         _zoomChanged = Signal.new(this)
         _editor = null 
+        _clicked = Signal.new(this)
+        _pressedChanged = Signal.new(this)
         this.skipRenderChild = true 
         this.name = "canvas"
         this.geometryChanged.connect{|e,v|
@@ -72,6 +75,9 @@ class Canvas is SgRectangle {
             }
         })
         _rttGenTimer.start()
+        _clicked.connect{|e,v|
+            Workspace.selectedIndex = -1
+        }
     }
     reGenTexture() {
         Raylib.LoadRenderTexture(_rtt, this.width, this.height)
@@ -112,11 +118,6 @@ class Canvas is SgRectangle {
     }
     zoomChanged{_zoomChanged}
 
-    onEvent(event) {
-        var ret = super.onEvent(event)
-
-        return ret 
-    }
     editor{_editor}
     editor=(val){_editor = val}
 
@@ -176,6 +177,26 @@ class Canvas is SgRectangle {
         }
     }
 
+    onEvent(event) {
+        var ret = super.onEvent(event)
+
+        if(event.type == SgEvent.MousePressed) {
+            _mousePressedTime = Raylib.GetTime()
+            ret = 1
+            _pressed = true 
+            _pressedChanged.emit(true)
+        } else if(event.type == SgEvent.MouseRelease) {
+            ret = 1
+            _pressed = false 
+            _pressedChanged.emit(false)
+            var now = Raylib.GetTime()
+            if(now - _mousePressedTime < 0.150) { _clicked.emit() }
+        }
+        return ret 
+    }
+
+    mouseWorldPos{_mouseWorldPos}
+
     parse(map) {
         super.parse(map)
     }
@@ -201,12 +222,61 @@ class SpriteItem is SgSprite {
         parse(map)
     }
 
-    initSpriteItemProps_() {
-        _index = 0
+    onRender() {
+        if(Workspace.selectedIndex >= 0) {
+            this.opacity = Workspace.selectedIndex == _index ? 1 : 0.3
+        } else {
+            this.opacity = 1
+        }
+        super.onRender()
+        if(_index == Workspace.selectedIndex) {
+            Raylib.DrawRectangleLinesEx(finalBounds, 2.0 / _canvas.zoom, Color.fromString("#33aaff"))
+        } else if(_hovered) {
+            Raylib.DrawRectangleLinesEx(finalBounds, 2.0 / _canvas.zoom, Color.fromString("#77ffaa33"))
+        }
     }
 
+    initSpriteItemProps_() {
+        _index = 0
+        _selected = false 
+        _hovered = false 
+        this.hoverEnabled = true 
+        _clicked = Signal.new(this)
+        _pressedChanged = Signal.new(this)
+        hoverEntered.connect{|e,v|  _hovered = true  }
+        hoverExited.connect{|e,v| _hovered = false  }
+        _canvas = null 
+        _clicked.connect{|e, v| 
+            Workspace.selectedIndex = _index 
+        }
+    }
+    clicked{_clicked}
+    selected{_selected}
+    selected=(val) {
+        if(val != _selected) { _selected = val  }
+    }
     index{ _index }
     index=(val) { _index = val }
+    canvas{_canvas}
+    canvas=(val){_canvas = val}
+
+    onEvent(event) {
+        var ret = super.onEvent(event)
+
+        if(event.type == SgEvent.MousePressed) {
+            _mousePressedTime = Raylib.GetTime()
+            ret = 1
+            _pressed = true 
+            _pressedChanged.emit(true)
+        } else if(event.type == SgEvent.MouseRelease) {
+            ret = 1
+            _pressed = false 
+            _pressedChanged.emit(false)
+            var now = Raylib.GetTime()
+            if(now - _mousePressedTime < 0.150) { _clicked.emit() }
+        }
+        return ret 
+    }
 
     parse(map) {
         super.parse(map)
@@ -243,35 +313,49 @@ class PreviewPanel is SgRectangle {
             _canvas.height = this.height 
         }
         _rect = SgRectangle.new(_canvas, {
-            "border": Border.new(1, Color.fromString("#33aaff")),
+            // "border": Border.new(1, Color.fromString("#33aaff")),
             "color": Color.fromString("#09ffffff")
         })
         _canvas.zoomChanged.connect{|e,v|
-            _rect.border.width = 2.0 / _canvas.zoom 
+            // _rect.border.width = 2.0 / _canvas.zoom 
         }
+
+        Workspace.maxSizeChanged.connect{|e,v| packRects() }
+        Workspace.mathChanged.connect{|e,v| packRects() }
     }
 
     loadFiles(files) {
         _rect.removeAllNodes()
         var i = 0
-        var inputs = ValueList.new()
-        var outputs = ValueList.new()
-        var crect = Rectangle.new()
-        if(files.count > 0) {  inputs.create(Raylib.VALUE_TYPE_RECTANGLE, files.count) }
         for(file in files) {
             var csprite = SpriteItem.new(_rect, { "source": file, "index": i })
+            csprite.canvas = _canvas 
             csprite.width = csprite.sourceSize.width 
             csprite.height = csprite.sourceSize.height 
-            crect.width = csprite.width
-            crect.height = csprite.height 
-            inputs.set(i, crect)
             i = i + 1
         }
-        var rw = 2048
-        var rh = 2048
+
+        packRects()
+    }
+
+    packRects() {
+        var inputs = ValueList.new()
+        if(_rect.children.count > 0) {  inputs.create(Raylib.VALUE_TYPE_RECTANGLE, _rect.children.count) }
+        var outputs = ValueList.new()
+        var crect = Rectangle.new()
+        var index = 0
+        for(csprite in _rect.children) {
+            crect.width = csprite.width
+            crect.height = csprite.height 
+            inputs.set(index, crect)
+            index = index + 1
+        }
+
+        var rw = Workspace.maxSize
+        var rh = Workspace.maxSize
         var max_w = 0
         var max_h = 0
-        Raylib.PackRectangles(inputs, outputs, rw, rh, 1)
+        Raylib.PackRectangles(inputs, outputs, rw, rh, Workspace.math)
         for(i in 0...outputs.count) {
             outputs.get(crect, i)
             _rect.children[i].x = crect.x 
@@ -284,7 +368,10 @@ class PreviewPanel is SgRectangle {
             }
         }
 
-        _rect.width = max_w 
-        _rect.height = max_h
+        _rect.width = max_w > 0 ? max_w : Workspace.maxSize 
+        _rect.height = max_h > 0 ? max_h : Workspace.maxSize
+
+        Workspace.selectedIndex = -1
+        Workspace.hoverIndex = -1
     }
 }

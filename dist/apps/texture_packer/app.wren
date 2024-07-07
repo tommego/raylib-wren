@@ -11,6 +11,8 @@ import "cico/engine/sg2d/control/listview" for SgListView
 import "cico/engine/sg2d/layout" for SgRow,SgFlowLayout, SgColumn 
 import "./filelistview" for FileListView
 import "./previewpanel" for PreviewPanel
+import "./workspace" for Workspace
+import "./propertypanel" for PropertyPanel
 
 class cico {
     static init() {
@@ -18,7 +20,7 @@ class cico {
         __bgColor = Color.new(111, 111, 111, 255)
         __mainWindow = SgWindow.new({
             "color": Color.new(66, 66, 66, 255)
-        },"WGC")
+        },"Texture Packer")
         __mainWindow.fps = 60
 
         var mainWindow = __mainWindow
@@ -71,7 +73,7 @@ class cico {
         __content = SgRow.new(mainWindow)
         __fileLIstView = FileListView.new(__content, {"width": 300})
         __imageRender = PreviewPanel.new(__content, {"width": 100, "height": 200, "color": Color.fromString("#222222")})
-        __propertyPanel = SgRectangle.new(__content, { "width": 300, "color": Color.fromString("#333333") })
+        __propertyPanel = PropertyPanel.new(__content, { "width": 300, "color": Color.fromString("#333333") })
 
         mainWindow.content.geometryChanged.connect{|e,v|
             __fileLIstView.height = mainWindow.contentHeight

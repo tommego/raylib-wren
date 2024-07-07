@@ -206,17 +206,12 @@ class SgComboBox is SgButton {
         _label.x = this.width / 2 - _label.width / 2 - 10
         _label.y = this.height / 2  - _label.height / 2
         _popup.itemSelected.connect{|e,v|
-            if(_currentIndex != v) {
-                _currentIndex = v 
-                var item = _popup.model.itemAt(_currentIndex)
-                _label.text = (item is Map ? item["text"]: "%(item)")
-                _label.x = this.width / 2 - _label.width / 2 - 10
-                _label.y = this.height / 2  - _label.height / 2
-                _currentIndexChanged.emit(v)
+            if(_extend) {
+                this.currentIndex = v 
+                _popup.close()
+                this.extend = false 
+                _validated.emit(_currentIndex)
             }
-            _popup.close()
-            this.extend = false 
-            _validated.emit(_currentIndex)
         }
         _popup.closed.connect{|e,v| this.extend = false }
 
@@ -229,6 +224,7 @@ class SgComboBox is SgButton {
         _slotRefreshArrowPoints = Fn.new{|e,v| refreshArrowPoints()}
         _extendChanged.connect(_slotRefreshArrowPoints)
         this.geometryChanged.connect(_slotRefreshArrowPoints)
+        _currentIndexChanged.connect{|e,v| updateLabel_()}
         refreshArrowPoints()
     }
 
@@ -248,7 +244,12 @@ class SgComboBox is SgButton {
     indicatorColor{_arrowColor}
     indicatorColor=(val){_arrowColor=val}
     currentIndex{_currentIndex}
-    currentIndex=(val){_currentIndex = val}
+    currentIndex=(val){
+        if(_currentIndex != val) {
+            _currentIndex = val
+            _currentIndexChanged.emit(val)
+        }
+    }
     currentIndexChanged{_currentIndexChanged}
     validated{_validated}
 
@@ -274,13 +275,32 @@ class SgComboBox is SgButton {
 
     parse(map) {
         super.parse(map)
-        if(map.keys.contains("model")) { this.model = map["model"] }
+        if(map.keys.contains("model")) { 
+            if(map["model"] is ListModel) {
+                this.model = map["model"] 
+            } else if(map["model"] is Sequence) {
+                for(item in map["model"]) {
+                    this.model.add(item)
+                }
+            }
+            updateLabel_()
+        }
         if(map.keys.contains("delegate")) { this.delegate = map["delegate"] }
         if(map.keys.contains("showLabel")) { this.showLabel = map["showLabel"]}
         if(map.keys.contains("options"))  {
             for(opt in map["options"]) { this.model.add(opt) }
         }
         if(map.keys.contains("indicatorColor")) { this.indicatorColor = map["indicatorColor"]}
+        if(map.keys.contains("currentIndex")) {  this.currentIndex = map["currentIndex"] }
+    }
+
+    updateLabel_() {
+        if(_popup.model.count > 0 && _currentIndex >= 0 && _currentIndex < _popup.model.count) {
+            var item = _popup.model.itemAt(_currentIndex)
+            _label.text = (item is Map ? item["text"]: "%(item)")
+            _label.x = this.width / 2 - _label.width / 2 - 10
+            _label.y = this.height / 2  - _label.height / 2
+        }
     }
 
     onRender() {

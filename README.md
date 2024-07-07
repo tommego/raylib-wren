@@ -131,6 +131,10 @@ cd dist
 
 ### Gallery
 
+texture packer
+![core_2d_camera_mouse.zoom](screenshots/texture_packer1.png)
+![core_2d_camera_mouse.zoom](screenshots/texture_packer2.png)
+
 core_2d_camera_mouse
 
 ![core_2d_camera_mouse.zoom](screenshots/core_2d_camera_mouse_zoom.png)
