@@ -1,7 +1,9 @@
 import "cico/engine/signalslot" for Signal 
 import "cico.os.sys" for Platform
-import "cico.raylib" for Raylib,Rectangle 
+import "cico.raylib" for Raylib,Rectangle,Image,Color
 import "cico/utils/serializer" for Serializer
+import "cico.json" for Json 
+import "cico.os.file" for File 
 
 class Workspace {
     static init() {
@@ -95,7 +97,59 @@ class Workspace {
             var json_dst = Platform.platform == "windows" ? "%(dir_dst)\\skin.json" : "%(dir_dist)/skin.json"
             System.print("exporting to %(dir_dst) %(png_dst) %(json_dst)")
             System.print("export size: %(exportSize.width) %(exportSize.height) sprites: %(exportRects)")
-            var json_str = Serializer.Stringify(exportRects)
+            // export json file 
+            {
+                var metaInfo = {
+                    "app": "wren texture packer",
+                    "format": "RGBA8888",
+                    "image": "skin.png",
+                    "scale": __scale,
+                    "size": {"w": __exportSize.width, "h": __exportSize.height}
+                }
+                var frameInfos = []
+                for(fframe in __exportRects) {
+                    var frame = {}
+                    frame["filename"] = fframe["filepath"].split("\\")[-1]
+                    frame["frame"] = { "w": fframe["rect"].width, "h": fframe["rect"].height, "x": fframe["rect"].x, "y": fframe["rect"].y  }
+                    frame["rotated"] = false 
+                    frame["sourceSize"] = { "w": fframe["rect"].width, "h": fframe["rect"].height }
+                    frameInfos.add(frame)
+                }
+
+                var dict = {"meta": metaInfo, "frames": frameInfos}
+                var jsonDict = Serializer.Value2Json(dict)
+
+                // write json to file
+                var f = File.new() 
+                if(f.open(json_dst, "w")) {
+                    f.write(jsonDict.dump())
+                    f.flush()
+                    f.close()
+                }
+            }
+
+            // export image file 
+            {
+                var outImg = Image.new()
+                Raylib.GenImageColor(outImg, __exportSize.width, __exportSize.height, Color.fromString("#00000000"))
+                __exportSize.x = 0
+                __exportSize.y = 0
+                var color = Color.new()
+                for(frame in __exportRects) {
+                    var cImg = Image.new()
+                    Raylib.LoadImage(cImg, frame["filepath"])
+                    var rect = frame["rect"]
+                    for(y in 0...cImg.height) {
+                        for(x in 0...cImg.width) {
+                            Raylib.GetImageColor(color, cImg, x, y)
+                            Raylib.ImageDrawPixel(outImg, rect.x + x, rect.y + y, color)
+                        }
+                    }
+                    Raylib.UnloadImage(cImg)
+                }
+                Raylib.ExportImage(outImg, png_dst)
+                Raylib.UnloadImage(outImg)
+            }
         }
     }
 }
