@@ -1,4 +1,7 @@
 import "cico/engine/signalslot" for Signal 
+import "cico.os.sys" for Platform
+import "cico.raylib" for Raylib,Rectangle 
+import "cico/utils/serializer" for Serializer
 
 class Workspace {
     static init() {
@@ -10,12 +13,16 @@ class Workspace {
             __math = 0
             __scale = 1
             __alphaMode = 0
+            __exportEnabled = false 
+            __exportRects = []
+            __exportSize = Rectangle.new()
             __hoverIndexChanged = Signal.new(this)
             __selectedIndexChanged = Signal.new(this)
             __maxSizeChanged = Signal.new(this)
             __mathChanged = Signal.new(this)
             __scaleChanged = Signal.new(this)
             __alphaModeChanged = Signal.new(this)
+            __exportEnabledChanged = Signal.new(this)
         }
     }
     static hoverIndex{__hoverIndex}
@@ -65,6 +72,31 @@ class Workspace {
             __alphaModeChanged.emit(val)
         }
     }
-    alphaModeChanged{__alphaModeChanged}
+    static alphaModeChanged{__alphaModeChanged}
+
+    static exportEnabled{___exportEnabled}
+    static exportEnabled=(val) {
+        if(__exportEnabled != val) {
+            __exportEnabled = val 
+            __exportEnabledChanged.emit(val )
+        }
+    }
+    static exportEnabledChanged{__exportEnabledChanged}
+
+    static exportSize{__exportSize}
+    static exportSize=(val){__exportSize = val}
+    static exportRects{__exportRects}
+    static exportRects=(val){__exportRects=(val)}
+
+    static export() {
+        var dir_dst = Platform.selectDir()
+        if(dir_dst != "") {
+            var png_dst = Platform.platform == "windows" ? "%(dir_dst)\\skin.png" : "%(dir_dist)/skin.png"
+            var json_dst = Platform.platform == "windows" ? "%(dir_dst)\\skin.json" : "%(dir_dist)/skin.json"
+            System.print("exporting to %(dir_dst) %(png_dst) %(json_dst)")
+            System.print("export size: %(exportSize.width) %(exportSize.height) sprites: %(exportRects)")
+            var json_str = Serializer.Stringify(exportRects)
+        }
+    }
 }
 Workspace.init()

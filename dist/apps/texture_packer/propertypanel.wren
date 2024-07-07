@@ -14,6 +14,7 @@ import "cico/engine/sg2d/control/label" for SgLabel
 import "cico/engine/signalslot" for Signal
 import "cico/engine/timer" for Timer  
 import "./workspace" for Workspace 
+import "cico.os.sys" for Platform
 
 class PropertyPanel is SgItem {
     construct new() {
@@ -122,7 +123,13 @@ class PropertyPanel is SgItem {
         // ====================== 导出设置 ==========================
         _lexport = SgLabel.new(_col, {"text": "导出设置", "fontSize": 16})
 
-        _exportBtn = SgButton.new(_col, {"text": "导出精灵", "width": 200, "height": 30, "fontSize": 16, "radius": 4})
+        _exportBtn = SgButton.new(_col, {"text": "导出精灵", "width": 200, "height": 30, "fontSize": 16, "radius": 4, "enabled": false })
         _exportBtn.anchors.horizontalCenter({"target": _col, "value": Anchors.HorizontalCenter})
+        _exportBtn.clicked.connect{|e,v| 
+            Workspace.export()
+        }
+        _exportBtn.enabled = false 
+
+        Workspace.exportEnabledChanged.connect{|e,v| _exportBtn.enabled = v }
     }
 }

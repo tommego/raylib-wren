@@ -1,8 +1,9 @@
 class Platform {
     foreign static argv
+    foreign static selectDir()
+    foreign static platform
     // foreign pwd 
     // foreign cwd 
-    // foreign platform
     // foreign version 
     // foreign ls(path)
     // foreign mkdir(path)

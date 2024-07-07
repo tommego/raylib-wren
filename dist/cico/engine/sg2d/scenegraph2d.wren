@@ -304,6 +304,7 @@ class SgNode2D {
         _finalPosition = Vector2.new()
         _finalBounds = Rectangle.new()
         _id = SceneGraph2D.genId()
+        _enabled = true 
 
         _extra = {}
 
@@ -330,6 +331,7 @@ class SgNode2D {
         _focusChanged = Signal.new(this)
         _hoverEntered = Signal.new(this)
         _hoverExited = Signal.new(this)
+        _enabledChanged = Signal.new(this)
         _skipRenderChild = false 
         _absoluteCoordinate = false
         _mouseInbounds = false 
@@ -486,6 +488,14 @@ class SgNode2D {
         }
     }
     id{_id}
+    enabled{_enabled}
+    enabled=(val) {
+        if(_enabled != val) {
+            _enabled = val 
+            _enabledChanged.emit(val)
+        }
+    }
+    enabledChanged{_enabledChanged}
     hoverEnabled{_hoverEnabled}
     hoverEnabled=(val){
         if(_hoverEnabled != val) {
@@ -759,6 +769,7 @@ class SgNode2D {
         if(map.keys.contains("clip")) { this.clip = map["clip"] }
         if(map.keys.contains("dragEnabled")) { this.dragEnabled = map["dragEnabled"] }
         if(map.keys.contains("hoverEnabled")) { this.hoverEnabled = map["hoverEnabled"] }
+        if(map.keys.contains("enabled")) { this.enabled = map["enabled"] }
         if(map.keys.contains("children")) {
             for(c in map["children"]) {
                 this.addNode(c)
@@ -955,7 +966,7 @@ class SceneGraph2D {
     static processEvent_(node, mouseWorldPos) {
         var ret = 0
 
-        if(node.visible) {
+        if(node.visible && node.enabled) {
             var shouldIterateSubNode = true 
             if(node.clip) {
                 var inBounds = Raylib.CheckCollisionPointRec(mouseWorldPos, node.finalBounds)

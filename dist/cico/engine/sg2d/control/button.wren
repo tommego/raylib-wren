@@ -49,6 +49,7 @@ class SgButton is SgRectangle {
         _pressedChanged = Signal.new(this)
         _clicked = Signal.new(this)
         _fontSpacingChanged = Signal.new(this)
+        enabledChanged.connect{|e,v| super.color = _backgroundColor * (enabled ? (_pressed ? 0.95 : 1.0) : 0.7) }
     }
 
     clicked{_clicked}
@@ -102,7 +103,7 @@ class SgButton is SgRectangle {
         if(_backgroundColor != val) {
             _backgroundColor = val
             _backgroundColorChanged.emit(val)
-            super.color = _backgroundColor * (_pressed ? 0.95 : 1.0)
+            super.color = _backgroundColor * (enabled ? (_pressed ? 0.95 : 1.0) : 0.7)
         }
     }
     pressed{_pressed}
@@ -124,9 +125,9 @@ class SgButton is SgRectangle {
         super.onRender()
         var bounds = super.finalBounds
         if(_font) {
-            Raylib.DrawTextPro(_font, _text, Vector2.new(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2), Vector2.new(bounds.width / 2, bounds.height / 2), finalRotation, _fontSize, _fontSpacing, _textColor)
+            Raylib.DrawTextPro(_font, _text, Vector2.new(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2), Vector2.new(bounds.width / 2, bounds.height / 2), finalRotation, _fontSize, _fontSpacing, enabled ? _textColor : _textColor * 0.4)
         } else {
-            Raylib.DrawTextPro(SceneGraph2D.font, _text, Vector2.new(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2), Vector2.new(_textSize.x / 2, _textSize.y / 2), finalRotation, _fontSize, _fontSpacing, _textColor)
+            Raylib.DrawTextPro(SceneGraph2D.font, _text, Vector2.new(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2), Vector2.new(_textSize.x / 2, _textSize.y / 2), finalRotation, _fontSize, _fontSpacing, enabled ? _textColor : _textColor * 0.4)
         }
     }
 

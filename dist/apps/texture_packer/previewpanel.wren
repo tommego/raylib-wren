@@ -319,12 +319,14 @@ class PreviewPanel is SgRectangle {
         _canvas.zoomChanged.connect{|e,v|
             // _rect.border.width = 2.0 / _canvas.zoom 
         }
+        _files = []
 
         Workspace.maxSizeChanged.connect{|e,v| packRects() }
         Workspace.mathChanged.connect{|e,v| packRects() }
     }
 
     loadFiles(files) {
+        _files = files
         _rect.removeAllNodes()
         var i = 0
         for(file in files) {
@@ -356,6 +358,7 @@ class PreviewPanel is SgRectangle {
         var max_w = 0
         var max_h = 0
         Raylib.PackRectangles(inputs, outputs, rw, rh, Workspace.math)
+        var erects = []
         for(i in 0...outputs.count) {
             outputs.get(crect, i)
             _rect.children[i].x = crect.x 
@@ -365,11 +368,19 @@ class PreviewPanel is SgRectangle {
             } else {
                 max_w = max_w.max(crect.x + crect.width)
                 max_h = max_h.max(crect.y + crect.height)
+                erects.add({
+                    "filepath": _files[i],
+                    "rect": Rectangle.new(crect.x, crect.y, crect.width, crect.height)
+                })
             }
         }
 
         _rect.width = max_w > 0 ? max_w : Workspace.maxSize 
         _rect.height = max_h > 0 ? max_h : Workspace.maxSize
+        Workspace.exportRects = erects
+        Workspace.exportEnabled = (erects.count > 0)
+        Workspace.exportSize.width = max_w 
+        Workspace.exportSize.height = max_h
 
         Workspace.selectedIndex = -1
         Workspace.hoverIndex = -1
