@@ -1801,8 +1801,18 @@ void RAYLIBFN(ImageAlphaMask)(WrenVM* vm) {} // TODO
 void RAYLIBFN(ImageAlphaPremultiply)(WrenVM* vm) {} // TODO 
 void RAYLIBFN(ImageBlurGaussian)(WrenVM* vm) {} // TODO 
 void RAYLIBFN(ImageKernelConvolution)(WrenVM* vm) {} // TODO 
-void RAYLIBFN(ImageResize)(WrenVM* vm) {} // TODO 
-void RAYLIBFN(ImageResizeNN)(WrenVM* vm) {} // TODO 
+void RAYLIBFN(ImageResize)(WrenVM* vm) {
+    auto img = WSCls(1, Image);
+    int w = WSDouble(2);
+    int h = WSDouble(3);
+    ImageResize(img, w, h);
+} // TODO 
+void RAYLIBFN(ImageResizeNN)(WrenVM* vm) {
+    auto img = WSCls(1, Image);
+    int w = WSDouble(2);
+    int h = WSDouble(3);
+    ImageResizeNN(img, w, h);
+} // TODO 
 void RAYLIBFN(ImageResizeCanvas)(WrenVM* vm) {} // TODO 
 void RAYLIBFN(ImageMipmaps)(WrenVM* vm) {} // TODO 
 void RAYLIBFN(ImageDither)(WrenVM* vm) {} // TODO 

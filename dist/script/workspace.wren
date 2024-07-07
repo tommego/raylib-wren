@@ -147,14 +147,6 @@ class Workspace {
                     }
                     Raylib.UnloadImage(cImg)
                 }
-
-                // scaling
-                if(__scale != 1) {
-                    var newWidth = (outImg.width * __scale).floor 
-                    var newHeight = (outImg.height * __scale).floor
-                    Raylib.ImageResize(outImg, newWidth, newHeight)
-                }
-
                 Raylib.ExportImage(outImg, png_dst)
                 Raylib.UnloadImage(outImg)
             }
