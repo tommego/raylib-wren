@@ -116,10 +116,12 @@ class Canvas is SgRectangle {
         _control.zoom = val
         _zoomChanged.emit(val)
     }
+    control{_control}
     zoomChanged{_zoomChanged}
 
     editor{_editor}
     editor=(val){_editor = val}
+    camera{_camera}
 
     handelInput() {
         Raylib.GetMousePosition(_mousePos)
@@ -392,5 +394,16 @@ class PreviewPanel is SgRectangle {
 
         Workspace.selectedIndex = -1
         Workspace.hoverIndex = -1
+
+        _canvas.control.pan.x = 0
+        _canvas.control.pan.y = 0
+        _canvas.control.offset.x = (-_canvas.finalBounds.x + _canvas.width / 2 - _rect.width / 2 ) 
+        _canvas.control.offset.y = (-_canvas.finalBounds.y + _canvas.height / 2 - _rect.height / 2)
+        _canvas.camera.target = _canvas.control.pan 
+        _canvas.camera.offset = _canvas.control.offset
+        var zoom = (_canvas.width / _rect.width).min(_canvas.height / _rect.height)
+        zoom = 1
+        _canvas.control.zoom = zoom
+        _canvas.camera.zoom = zoom
     }
 }
