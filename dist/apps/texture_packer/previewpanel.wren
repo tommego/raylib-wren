@@ -321,6 +321,22 @@ class PreviewPanel is SgRectangle {
         }
         _files = []
 
+        _timer = Timer.new({ "repeat": true, "interval": 0.016 })
+        _loadIndex = 0
+        _timer.triggered.connect{|e,v| 
+            var i = _loadIndex
+            var file = _files[i]
+            var csprite = SpriteItem.new(_rect, { "source": file, "index": i })
+            csprite.canvas = _canvas 
+            csprite.width = csprite.sourceSize.width 
+            csprite.height = csprite.sourceSize.height 
+            _loadIndex = _loadIndex + 1
+            if(_loadIndex >= _files.count) {
+                _timer.stop()
+                packRects()
+            }
+        }
+
         Workspace.maxSizeChanged.connect{|e,v| packRects() }
         Workspace.mathChanged.connect{|e,v| packRects() }
     }
@@ -328,16 +344,8 @@ class PreviewPanel is SgRectangle {
     loadFiles(files) {
         _files = files
         _rect.removeAllNodes()
-        var i = 0
-        for(file in files) {
-            var csprite = SpriteItem.new(_rect, { "source": file, "index": i })
-            csprite.canvas = _canvas 
-            csprite.width = csprite.sourceSize.width 
-            csprite.height = csprite.sourceSize.height 
-            i = i + 1
-        }
-
-        packRects()
+        _loadIndex = 0
+        _timer.start()
     }
 
     packRects() {

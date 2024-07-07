@@ -12,6 +12,7 @@ import "cico/engine/sg2d/control/listview" for SgListView
 import "cico/engine/sg2d/control/label" for SgLabel
 import "cico/engine/signalslot" for Signal
 import "./workspace" for Workspace
+import "cico/engine/timer" for Timer  
 
 class FileDelegate is SgButton{
     construct new(listview, index, modelData) {
@@ -143,14 +144,30 @@ class FileListView is SgListView {
         Workspace.selectedIndexChanged.connect{|e,v|
             this.currentIndex = Workspace.selectedIndex
         }
+        _timer = Timer.new({
+            "repeat": true,
+            "interval": 0.016
+        })
+        _loadIndex = 0
+        _files = []
+        _timer.triggered.connect{|e,v|
+            var file = _files[_loadIndex]
+            this.model.add(file)
+            _loadIndex = _loadIndex + 1
+            if(_loadIndex >= _files.count) {
+                _timer.stop()
+                _loadIndex= 0
+            }
+        }
     }
 
     loadFiles(files) {
+        _timer.stop()
         if(this.model.count > 0) {
             this.model.clear()
         }
-        for(file in files) {
-            this.model.add(file)
-        }
+        _files = files 
+        _loadIndex = 0
+        _timer.start()
     }
 }
