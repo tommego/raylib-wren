@@ -11,7 +11,12 @@ int main(int argc, const char* argv[])
         cico::cico_destroy(engine);
         engine = nullptr;
     } else {
-        printf("Usage: ./cico_app path/to/script.wren \n");
+        cico::cico_init_app(argc, argv);
+        auto engine = cico::cico_create();
+        cico::cico_start(engine, "script/app.wren"); 
+        cico::cico_stop(engine);
+        cico::cico_destroy(engine);
+        engine = nullptr;
     }
     return 0;
 }

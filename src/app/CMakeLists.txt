@@ -18,7 +18,8 @@ set(cico_app_sources
 )
 
 add_executable(cico_app)
-target_sources(cico_app PRIVATE ${cico_app_sources})
+
+target_sources(cico_app PRIVATE ${cico_app_sources} app.rc)
 list(APPEND app_libs cico)
 if(${CICO_MODULE_RAYLIB} MATCHES ON) 
     list(APPEND app_libs raylib)
