@@ -13,6 +13,7 @@ import "./filelistview" for FileListView
 import "./previewpanel" for PreviewPanel
 import "./workspace" for Workspace
 import "./propertypanel" for PropertyPanel
+import "cico.os.sys" for Platform
 
 class cico {
     static init() {
@@ -35,10 +36,23 @@ class cico {
                     "text": "文件",
                     "options": [
                         SgMenuItem.new({"title": "新建", "onTriggered": Fn.new{System.print("Menu Item New triggered")}}),
-                        SgMenuItem.new({"title": "打开", "onTriggered": Fn.new{System.print("Menu Item Open triggered")}}),
+                        SgMenuItem.new({"title": "打开", "onTriggered": Fn.new{
+                            var files = Platform.openFile(
+                                "Open Image",
+                                ["ImageFiles(*.png *.ico *.jpeg)", "*.png *.jpeg *.ico"],
+                                true
+                            )
+                            System.print("%(files)")
+                        }}),
                         SgMenuItem.new({"title": "打开最近", "onTriggered": Fn.new{System.print("Menu Item Open Recent triggered")}}),
                         SgMenuItem.new({"title": "保存", "onTriggered": Fn.new{System.print("Menu Item Save triggered")}}),
-                        SgMenuItem.new({"title": "保存为", "onTriggered": Fn.new{System.print("Menu Item Save As triggered")}}),
+                        SgMenuItem.new({"title": "保存为", "onTriggered": Fn.new{
+                            var saveFilePath = Platform.openSaveFile(
+                                "Save File", 
+                                []
+                            )
+                            System.print("================= %(saveFilePath)")
+                        }}),
                         SgMenuItem.new({"title": "导入", "onTriggered": Fn.new{System.print("Menu Item Import triggered")}}),
                         SgMenuItem.new({"title": "导出", "onTriggered": Fn.new{System.print("Menu Item Export triggered")}})
                     ]

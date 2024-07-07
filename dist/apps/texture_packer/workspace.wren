@@ -91,7 +91,7 @@ class Workspace {
     static exportRects=(val){__exportRects=(val)}
 
     static export() {
-        var dir_dst = Platform.selectDir()
+        var dir_dst = Platform.selectFolder()
         if(dir_dst != "") {
             var png_dst = Platform.platform == "windows" ? "%(dir_dst)\\skin.png" : "%(dir_dist)/skin.png"
             var json_dst = Platform.platform == "windows" ? "%(dir_dst)\\skin.json" : "%(dir_dist)/skin.json"
@@ -150,6 +150,8 @@ class Workspace {
                 Raylib.ExportImage(outImg, png_dst)
                 Raylib.UnloadImage(outImg)
             }
+
+            Platform.message("Export", "精灵已经导出保存！", 0, 0)
         }
     }
 }
