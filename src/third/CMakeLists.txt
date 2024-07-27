@@ -50,6 +50,7 @@ endif()
 add_subdirectory(mongoose)
 add_subdirectory(serial)
 add_subdirectory(dynalo)
+add_subdirectory(sqlite3)
 # build examples
 # add_executable(example_embedding)
 # target_sources(example_embedding PRIVATE wren/example/embedding/main.c)

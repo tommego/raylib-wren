@@ -10,6 +10,7 @@
 #include "internal_modules/math/cm_math.h"
 #include "internal_modules/os/cm_file.h"
 #include "internal_modules/os/cm_sys.h"
+#include "internal_modules/os/cm_sqlite3.h"
 #include "cico_file_module.h"
 
 #if defined(CICO_MODULE_VINPUT)
@@ -153,6 +154,7 @@ void cico_start(CicoEngine* engine, std::string program)
   registerModule("cico.os.file", cicoFileSource(), (void*)wrenFileBindClass, (void*)wrenFileBindForeignMethod);
   registerModule("cico.os.sys", cicoSysSource(), nullptr, (void*)wrenSysBindForeignMethod);
   registerModule("cico.os.serial", cicoSerialSource(), (void*)wrenSerialBinForeignClass, (void*)wrenSerialBindForeignMethod);
+  registerModule("cico.os.sqlite3", cicoSqlite3Source(), (void*)wrenSqlite3BinForeignClass, (void*)wrenSqlite3BindForeignMethod);
   registerModule("cico.net.mongoose", cicoMongosseSource(), (void*)wrenMongooseBindClass, (void*)wrenMongooseBindForeignMethod);
 #if defined(CICO_MODULE_VINPUT)
   registerModule("cico.os.vinput", cicoVinputSource(), (void*)wrenVinputBinForeignClass, (void*)wrenVinputBindForeignMethod);

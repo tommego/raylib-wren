@@ -139,7 +139,7 @@ class FileListView is SgListView {
 
     initFileListViewProps_() {
         this.delegate = FileDelegate
-        this.smooth = 12
+        this.smooth = 1
         this.currentIndex = Workspace.selectedIndex
         Workspace.selectedIndexChanged.connect{|e,v|
             this.currentIndex = Workspace.selectedIndex

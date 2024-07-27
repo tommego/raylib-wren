@@ -29,6 +29,7 @@ set(cico_sources
     internal_modules/os/cm_file.cpp 
     internal_modules/os/cm_sys.cpp 
     internal_modules/os/cm_serial.cpp
+    internal_modules/os/cm_sqlite3.cpp
     internal_modules/net/cm_mongoose.cpp 
 )
 

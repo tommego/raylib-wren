@@ -53,10 +53,10 @@ class SgWindow is SgRectangle{
         this.height = 720
         _fps = 60
         // _flags = Raylib.FLAG_WINDOW_RESIZABLE | Raylib.FLAG_MSAA_4X_HINT | Raylib.FLAG_WINDOW_HIGHDPI
-        _flags = Raylib.FLAG_WINDOW_RESIZABLE | Raylib.FLAG_MSAA_4X_HINT | Raylib.FLAG_INTERLACED_HINT
+        _flags = Raylib.FLAG_WINDOW_RESIZABLE | Raylib.FLAG_MSAA_4X_HINT | Raylib.FLAG_WINDOW_HIGHDPI
+        System.print("==================================================================== %(_flags)")
         Raylib.SetConfigFlags(_flags)
         Raylib.InitWindow(this.width, this.height, _title)
-        Raylib.SetConfigFlags(_flags)
         SceneGraph2D.init()
         Raylib.SetTargetFPS(_fps)
         SceneGraph2D.root.addNode(this)

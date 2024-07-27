@@ -387,7 +387,7 @@ class SgNode2D {
     x=(val){
         if(_x != val) {
             _x = val
-            _geometryChanged.emit(null)
+            _geoChanged = true
             _xChanged.emit(val)
         }
     }
@@ -395,7 +395,7 @@ class SgNode2D {
     y=(val){
         if(_y != val) {
             _y = val
-            _geometryChanged.emit(null)
+            _geoChanged = true
             _yChanged.emit(val)
         }
     }
@@ -403,7 +403,7 @@ class SgNode2D {
     width = (val) {
         if(_width != val) {
             _width = val
-            _geometryChanged.emit(null)
+            _geoChanged = true
             _widthChanged.emit(val)
         }
     }
@@ -411,7 +411,7 @@ class SgNode2D {
     height = (val) {
         if(_height != val) {
             _height = val
-            _geometryChanged.emit(null)
+            _geoChanged = true
             _heightChanged.emit(val)
         }
     }
@@ -734,6 +734,13 @@ class SgNode2D {
         Raylib.EndMode2D()
     }
 
+    frameLoop() {
+        if(_geoChanged) {
+            _geoChanged = false
+            _geometryChanged.emit(null)
+        }
+    }
+
     // reimplement this to process event 
     onEvent(event) { 
         var ret = 0
@@ -921,6 +928,9 @@ class SceneGraph2D {
                 if(__root) { 
                     processEvent_(__root, __mouseWorldPos) 
                 }
+
+                if(__root) { frameLoop_(__root) }
+
                 Fiber.yield()
             }
         }
@@ -934,6 +944,12 @@ class SceneGraph2D {
             }
         }
 
+
+    }
+
+    static frameLoop_(node) {
+        node.frameLoop()
+        for(c in node.children) { frameLoop_(c) }
     }
 
     static mousePos{__mousePos}
