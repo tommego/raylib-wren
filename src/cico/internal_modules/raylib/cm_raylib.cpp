@@ -5,6 +5,7 @@ extern "C" {
     #include "raylib.h"
     #include "config.h"
     #include "raymath.h"
+    #include "rlgl.h"
     #include "external/stb_rect_pack.h"
 }
 
@@ -1859,21 +1860,25 @@ void RAYLIBFN(ImageDrawTextEx)(WrenVM* vm) { ImageDrawTextEx(WSCls(1, Image), *W
 void RAYLIBFN(LoadTexture)(WrenVM* vm) {
     auto input = WSCls(1, Texture2D);
     auto output = LoadTexture(WSString(2));
+    SetTextureFilter(output, TEXTURE_FILTER_BILINEAR);
     memcpy(input, &output, sizeof(Texture2D));
 }
 void RAYLIBFN(LoadTextureFromImage)(WrenVM* vm) {
     auto input = WSCls(1, Texture2D);
     auto output = LoadTextureFromImage(*WSCls(2, Image));
+    SetTextureFilter(output, TEXTURE_FILTER_BILINEAR);
     memcpy(input, &output, sizeof(Texture2D));
 }
 void RAYLIBFN(LoadTextureCubemap)(WrenVM* vm) {
     auto input = WSCls(1, TextureCubemap);
     auto output = LoadTextureCubemap(*WSCls(2, Image), WSDouble(3));
+    SetTextureFilter(output, TEXTURE_FILTER_BILINEAR);
     memcpy(input, &output, sizeof(TextureCubemap));
 }
 void RAYLIBFN(LoadRenderTexture)(WrenVM* vm) {
     auto input = WSCls(1, RenderTexture2D);
     auto output = LoadRenderTexture(WSDouble(2), WSDouble(3));
+    SetTextureFilter(output.texture, TEXTURE_FILTER_BILINEAR);
     memcpy(input, &output, sizeof(RenderTexture2D));
 }
 void RAYLIBFN(IsTextureReady)(WrenVM* vm) { wrenSetSlotBool(vm, 0, IsTextureReady(*WSCls(1, Texture2D))); }
@@ -1933,12 +1938,15 @@ void RAYLIBFN(LoadFont)(WrenVM* vm) {
     for(int i = 0x1F004; i < 0x1F9E6; i++) { codepoints.push_back(i); } 
 
     auto output = LoadFontEx(WSString(2), 32, codepoints.data(), codepoints.size());
+    SetTextureFilter(output.texture, TEXTURE_FILTER_BILINEAR);
+    // rlTextureParameters()
     memcpy(input, &output, sizeof(Font));
 }
 void RAYLIBFN(LoadFontEx)(WrenVM* vm) {
     auto cp = WSCls(4, ValueList);
     auto fnt = WSCls(1, Font);
     *fnt = LoadFontEx(WSString(2), WSDouble(3), (int*)cp->data, cp->count);
+    SetTextureFilter(fnt->texture, TEXTURE_FILTER_BILINEAR);
 } // TODO
 void RAYLIBFN(LoadFontFromImage)(WrenVM* vm) {} // TODO
 void RAYLIBFN(LoadFontFromMemory)(WrenVM* vm) {} // TODO
